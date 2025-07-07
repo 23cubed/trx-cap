@@ -6,13 +6,13 @@ on:
     paths:
       - 'src/**'
       - 'package.json'
-      - 'build.js'
+      - '.parcelrc'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - 'package.json'
-      - 'build.js'
+      - '.parcelrc'
 
 jobs:
   build:
