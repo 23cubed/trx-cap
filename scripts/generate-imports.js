@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 function generateImports() {
     const jsDir = path.join(__dirname, '../src/js');
@@ -14,51 +13,14 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
-    // Generate static build identifier for CDN URL
-    let buildId = '';
-    let cdnPath = '@main';  // Always use @main for consistency
-    
-    // Get commit hash for build ID only
-    try {
-        const commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-        buildId = commitHash.substring(0, 7);
-        console.log(`📌 Using @main CDN path with build ID: ${buildId}`);
-    } catch (error) {
-        // Fallback to timestamp-based build ID
-        buildId = Date.now().toString(36);
-        console.log(`📌 Using @main CDN path with timestamp build ID: ${buildId}`);
-    }
-    
-    // Generate the main.js content
+    // Generate the main.js content - SIMPLE AND CLEAN
     const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
 // Run 'npm run generate-imports' to update
 
 ${imports}
 
-// Expose CDN URL function with static build reference
-window.TRXCap = window.TRXCap || {};
-window.TRXCap.getCDNUrl = function() {
-    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap${cdnPath}/dist/main.js';
-};
-window.TRXCap.getBuildId = function() {
-    return '${buildId}';
-};
-window.TRXCap.getBuildTime = function() {
-    return '${new Date().toISOString()}';
-};
-window.TRXCap.loadDynamically = function() {
-    const script = document.createElement('script');
-    script.src = window.TRXCap.getCDNUrl();
-    script.onload = () => console.log('🚀 TRX Cap bundle loaded dynamically!');
-    document.head.appendChild(script);
-    return script;
-};
-
-// Console log with timestamp for debugging
-console.log('✅ Bundle loaded from:', window.TRXCap.getCDNUrl());
-console.log('🏷️  Version:', window.TRXCap.getBuildId());
-console.log('⏰ Build time:', window.TRXCap.getBuildTime());
-console.log('🕐 Load time:', new Date().toISOString());
+// Simple confirmation that modules loaded
+console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
 `;
     
     // Write the updated main.js
