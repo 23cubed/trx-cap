@@ -10,3 +10,6 @@ import './split-text.js';
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./hero.js', './navbar.js', './page-transition.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js']);
+
+// Set global flag for auto-inserter detection
+window.TRXCapLoaded = true;
