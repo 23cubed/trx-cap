@@ -8,9 +8,7 @@
     "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
     "predev": "npm run generate-imports",
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
-    "clean": "rm -rf dist && mkdir -p dist",
-    "cdn-url": "node scripts/get-cdn-url.js",
-    "commit-url": "node scripts/generate-commit-url.js"
+    "clean": "rm -rf dist && mkdir -p dist"
   },
   "keywords": [
     "portfolio",

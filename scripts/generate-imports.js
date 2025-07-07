@@ -22,9 +22,6 @@ ${imports}
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
-
-// Set global flag for auto-inserter detection
-window.TRXCapLoaded = true;
 `;
     
     // Write the updated main.js
