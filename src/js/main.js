@@ -11,10 +11,10 @@ window.TRXCap.getCDNUrl = function() {
     return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js';
 };
 window.TRXCap.getBuildId = function() {
-    return 'f2be8f0';
+    return 'e4f297e';
 };
 window.TRXCap.getBuildTime = function() {
-    return '2025-07-07T04:08:34.805Z';
+    return '2025-07-07T04:09:26.614Z';
 };
 window.TRXCap.loadDynamically = function() {
     const script = document.createElement('script');
