@@ -123,7 +123,7 @@ function pageLoadScene() {
             duration: 1,
             ease: "power2.inOut"
         },
-        "heroContentAnimate-=0.5"
+        "heroAnimate"
     )
     .call(() => {
         const heroHeading = document.querySelector("#heroHeading");
