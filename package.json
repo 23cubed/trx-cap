@@ -3,15 +3,14 @@
   "version": "1.0.0",
   "description": "TRX Capital portfolio website bundle",
   "scripts": {
-    "build": "node build.js",
-    "dev": "node build.js --watch",
+    "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
+    "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
     "clean": "rm -rf dist && mkdir -p dist"
   },
   "keywords": ["portfolio", "webflow", "animations"],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "esbuild": "^0.19.12",
-    "glob": "^10.3.10"
+    "parcel": "^2.12.0"
   }
 } 
