@@ -17,7 +17,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -30,9 +29,6 @@ jobs:
     
     - name: Build bundle
       run: npm run build
-    
-    - name: List dist directory
-      run: ls -la dist/
     
     - name: Check for changes
       id: verify-changed-files
@@ -47,113 +43,25 @@ jobs:
           echo "No changes detected, skipping commit"
         fi
     
-    - name: Get current version and increment
-      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
-      id: version
-      run: |
-        # Get current version from package.json
-        CURRENT_VERSION=$(node -p "require('./package.json').version")
-        echo "Current version: $CURRENT_VERSION"
-        
-        # Extract version parts
-        IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-        MAJOR=${VERSION_PARTS[0]}
-        MINOR=${VERSION_PARTS[1]}
-        PATCH=${VERSION_PARTS[2]}
-        
-        # Increment patch version
-        NEW_PATCH=$((PATCH + 1))
-        NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-        
-        echo "New version: $NEW_VERSION"
-        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
-        
-        # Update package.json version
-        node -e "
-          const pkg = require('./package.json');
-          pkg.version = '$NEW_VERSION';
-          require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
-        "
-    
-    - name: Update permanent latest.js file
-      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
-      run: |
-        echo "🔄 Updating permanent latest.js file..."
-        
-        # Create docs directory if it doesn't exist
-        mkdir -p docs
-        
-        # Get current timestamp
-        TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-        VERSION="${{ steps.version.outputs.version }}"
-        
-        # Read the built bundle content
-        BUNDLE_CONTENT=$(cat dist/main.js)
-        
-        # Create the permanent latest.js file
-        cat > docs/latest.js << EOF
-        // TRX Cap Bundle - Auto-updated by GitHub Actions
-        // This file always contains the latest version
-        // Last updated: $TIMESTAMP
-        // Version: v$VERSION
-        // Permanent URL: https://23cubed.github.io/trx-cap/latest.js
-
-        $BUNDLE_CONTENT
-        EOF
-        
-        echo "✅ Updated docs/latest.js with latest bundle content"
-        echo "📦 Version: v$VERSION"
-        echo "🔗 Permanent URL: https://23cubed.github.io/trx-cap/latest.js"
-    
     - name: Commit and push changes
       if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add dist/ src/js/main.js package.json docs/
+        git add dist/ src/js/main.js
         echo "Files to be committed:"
         git diff --cached --name-only
         if git diff --cached --quiet; then
           echo "No changes to commit after staging"
           exit 0
         fi
-        git commit -m "Auto-build: Update bundle and imports to v${{ steps.version.outputs.version }} [skip ci]"
+        git commit -m "Auto-build: Update bundle and imports [skip ci]"
         git push origin main
-    
-    - name: Create and push Git tag
-      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
-      run: |
-        echo "🏷️  Creating Git tag ${{ steps.version.outputs.tag }}"
-        git tag ${{ steps.version.outputs.tag }}
-        git push origin ${{ steps.version.outputs.tag }}
-        echo "✅ Git tag created and pushed successfully"
     
     - name: Purge jsDelivr CDN cache
       if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
       run: |
-        echo "🔄 Purging jsDelivr CDN cache for multiple endpoints..."
-        
-        # Purge @main branch files
-        echo "Purging @main branch..."
+        echo "🔄 Purging jsDelivr CDN cache..."
         curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js"
-        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js.map" || true
-        
-        # Purge specific version files
-        echo "Purging version ${{ steps.version.outputs.tag }}..."
-        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@${{ steps.version.outputs.tag }}/dist/main.js"
-        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@${{ steps.version.outputs.tag }}/dist/main.js.map" || true
-        
-        # Purge @latest alias
-        echo "Purging @latest alias..."
-        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js"
-        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js.map" || true
-        
         echo "✅ CDN cache purged successfully!"
-        echo "🚀 Latest changes should be available immediately"
-        echo ""
-        echo "📋 Available CDN URLs:"
-        echo "🔗 Permanent (GitHub Pages): https://23cubed.github.io/trx-cap/latest.js"
-        echo "🔗 Latest: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js"
-        echo "🔗 Main: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js"
-        echo "🔗 Version: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@${{ steps.version.outputs.tag }}/dist/main.js" 
+        echo "🚀 Changes should be available at: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js" 
