@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRX Cap - Self-Hosted Bundle</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .url-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 TRX Cap - Self-Hosted Bundle</h1>
+        
+        <div class="status">
+            <strong>✅ Live and updating instantly!</strong><br>
+            No more CDN throttling or cache issues.
+        </div>
+
+        <h2>📋 Webflow Integration</h2>
+        <p>Add this script tag to your Webflow project footer:</p>
+        
+        <div class="url-box">
+            &lt;script src="https://23cubed.github.io/trx-cap/main.js"&gt;&lt;/script&gt;
+            <button class="copy-btn" onclick="copyToClipboard('https://23cubed.github.io/trx-cap/main.js')">Copy URL</button>
+        </div>
+
+        <h2>🔗 Available Files</h2>
+        <ul>
+            <li><a href="./main.js">main.js</a> - Production bundle</li>
+            <li><a href="./main.js.map">main.js.map</a> - Source map</li>
+        </ul>
+
+        <h2>📊 Bundle Info</h2>
+        <p>This bundle includes all TRX Cap modules with auto-generated imports.</p>
+        
+        <div id="bundle-info">
+            <p>Loading bundle information...</p>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        // Load and display bundle info
+        fetch('./main.js')
+            .then(response => response.text())
+            .then(content => {
+                const match = content.match(/console\.log\("🚀 TRX Cap modules loaded:",\[(.*?)\]\);/);
+                if (match) {
+                    const modules = match[1].split(',').map(m => m.trim().replace(/"/g, ''));
+                    document.getElementById('bundle-info').innerHTML = `
+                        <p><strong>Modules loaded:</strong> ${modules.length}</p>
+                        <ul>${modules.map(m => `<li>${m}</li>`).join('')}</ul>
+                    `;
+                } else {
+                    document.getElementById('bundle-info').innerHTML = '<p>Bundle loaded successfully!</p>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('bundle-info').innerHTML = '<p>Error loading bundle info.</p>';
+            });
+    </script>
+</body>
+</html> 
