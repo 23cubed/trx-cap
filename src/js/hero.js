@@ -160,6 +160,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
-    pageLoadScene();
     
+    setTimeout(() => {
+        pageLoadScene();
+    }, 200);
 });
