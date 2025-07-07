@@ -4,5 +4,3 @@
 import './hero.js';
 import './navbar.js';
 import './split-text.js';
-
-console.log('🚀 All modules loaded: ./hero.js, ./navbar.js, ./split-text.js');
