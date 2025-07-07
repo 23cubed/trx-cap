@@ -38,6 +38,13 @@ const buildOptions = {
   resolveExtensions: ['.js'],
   loader: {
     '.js': 'js'
+  },
+  // Add better tree shaking and module resolution
+  treeShaking: true,
+  platform: 'browser',
+  // Add timestamp banner
+  banner: {
+    js: `/* TRX Capital Bundle - Built: ${new Date().toISOString()} */`
   }
 };
 
