@@ -107,7 +107,7 @@ function initPageTransitions() {
             timeout: 7000,
             once(data) {
                 document.fonts.ready.then(function () {
-                    initScript();
+                    reinitializeAllScripts();
                 })
             },
             leave(data) {
