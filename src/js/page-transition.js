@@ -122,7 +122,7 @@ function initPageTransitions() {
         }],
         views: [{
             namespace: 'contact',
-            afterEnter(data) {
+            beforeEnter(data) {
                 console.log('initFormErrors');
                 initFormErrors();
             }
