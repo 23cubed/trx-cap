@@ -14,11 +14,23 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
-    // Generate timestamp
-    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    // Check if current file exists and read its imports section
+    let currentImports = '';
+    if (fs.existsSync(mainFile)) {
+        const currentContent = fs.readFileSync(mainFile, 'utf8');
+        const importsMatch = currentContent.match(/import '\.\/.*?';/g);
+        if (importsMatch) {
+            currentImports = importsMatch.join('\n');
+        }
+    }
     
-    // Generate the main.js content - SIMPLE AND CLEAN
-    const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
+    // Only update if imports changed
+    if (imports !== currentImports) {
+        // Generate timestamp
+        const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+        
+        // Generate the main.js content - SIMPLE AND CLEAN
+        const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
 // Run 'npm run generate-imports' to update
 
 ${imports}
@@ -27,11 +39,15 @@ ${imports}
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
 console.log('📅 Updated at ${timestamp} EST');
 `;
-    
-    // Write the updated main.js
-    fs.writeFileSync(mainFile, mainContent);
-    
-    console.log(`✅ Generated imports for ${jsFiles.length} modules:`, jsFiles);
+        
+        // Write the updated main.js
+        fs.writeFileSync(mainFile, mainContent);
+        
+        console.log(`✅ Generated imports for ${jsFiles.length} modules:`, jsFiles);
+        console.log('📝 main.js updated with new imports');
+    } else {
+        console.log(`✅ Imports unchanged for ${jsFiles.length} modules - skipping update`);
+    }
 }
 
 generateImports(); 
