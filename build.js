@@ -5,7 +5,7 @@ const path = require('path');
 
 const isWatch = process.argv.includes('--watch');
 
-// Get all JS files
+// Get all JS files (order doesn't matter - esbuild resolves dependencies)
 const jsFiles = glob.sync('./src/js/*.js');
 
 // Get all CSS files and combine them

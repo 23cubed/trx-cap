@@ -107,13 +107,31 @@ Your Webflow project should include these elements for the animations to work:
 3. Run `npm run build` to generate new bundle (or just push - GitHub Actions does this automatically)
 4. jsDeliver CDN will automatically serve the updated files
 
-### ✨ Zero Configuration
-Just add any `.js` file to `src/js/` or any `.css` file to `src/css/` and it will be automatically included in the bundle!
+### ✨ Zero Configuration + Smart Dependencies
+- Just add any `.js` file to `src/js/` or any `.css` file to `src/css/` and it will be automatically included in the bundle!
+- **Use ES6 modules** - `import`/`export` statements for clean dependency management
+- **Automatic dependency resolution** - esbuild handles all the complexity
+- **No manual loading order** - Dependencies are resolved automatically
+
+#### Example: Using ES6 Modules
+```javascript
+// src/js/utils.js
+export function myUtilFunction() {
+  return "Hello from utils!";
+}
+
+// src/js/main.js
+import { myUtilFunction } from './utils.js';
+
+console.log(myUtilFunction()); // Works automatically in the bundle!
+```
 
 ## 📝 Notes
 
 - **Built with esbuild** - Super fast and zero configuration
 - **Automatic file discovery** - No need to manually import files
+- **ES6 module support** - Use import/export for clean dependencies
+- **Automatic dependency resolution** - No manual loading order needed
 - **Production optimized** - Minified and optimized for CDN delivery
 - **Watch mode available** - Use `npm run dev` for development
 - The bundle exposes itself as an IIFE named `TRXCap` 

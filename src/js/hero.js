@@ -1,3 +1,5 @@
+import { splitTextElement, animateSplitText } from './split-text.js';
+
 function pageLoadScene() {
     const tl = gsap.timeline();
     const computedStyle = getComputedStyle(document.documentElement);
