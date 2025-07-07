@@ -8,7 +8,8 @@
     "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
     "predev": "npm run generate-imports",
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
-    "clean": "rm -rf dist && mkdir -p dist"
+    "clean": "rm -rf dist && mkdir -p dist",
+    "prepare": "husky install"
   },
   "keywords": [
     "portfolio",
@@ -18,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "husky": "^8.0.3",
     "parcel": "^2.12.0"
   }
 }
