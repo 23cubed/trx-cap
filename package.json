@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "TRX Capital portfolio website bundle",
   "scripts": {
+    "generate-imports": "node scripts/generate-imports.js",
+    "prebuild": "npm run generate-imports",
     "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
+    "predev": "npm run generate-imports", 
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
     "clean": "rm -rf dist && mkdir -p dist"
   },
