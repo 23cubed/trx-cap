@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     y: position.top
                 });
                 gsap.to(shuttle, {
-                    opacity: 0.1,
+                    opacity: 0.05,
                     duration: 0.35,
                     ease: "power3.out"
                 });
