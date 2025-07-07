@@ -10,4 +10,4 @@ import './split-text.js';
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./hero.js', './navbar.js', './page-transition.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js']);
-console.log('📅 Updated at 7/7/2025, 11:40:37 AM');
+console.log('📅 Updated at 7/7/2025, 3:40:58 PM');
