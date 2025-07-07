@@ -1,6 +1,6 @@
 {
   "name": "trx-cap",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "TRX Capital portfolio website bundle",
   "scripts": {
     "generate-imports": "node scripts/generate-imports.js",
