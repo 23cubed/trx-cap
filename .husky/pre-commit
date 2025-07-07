@@ -1,2 +1,9 @@
+#!/bin/sh
+# Skip pre-commit hook in CI environment
+if [ "$CI" = "true" ]; then
+  echo "Skipping pre-commit hook in CI environment"
+  exit 0
+fi
+
 npm run generate-imports
 git add src/js/main.js 
