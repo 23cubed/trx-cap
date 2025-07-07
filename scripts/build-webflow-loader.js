@@ -5,16 +5,26 @@ const { execSync } = require('child_process');
 function buildWebflowLoader() {
     console.log('🔧 Building Webflow loader system...');
     
-    // Get commit info
+    // Get version info - use different strategies for CI vs local
     let commitHash = '';
     let shortHash = '';
-    try {
-        commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-        shortHash = commitHash.substring(0, 7);
-        console.log(`📌 Commit: ${shortHash}`);
-    } catch (error) {
-        console.warn('⚠️  Could not get commit hash, using timestamp');
-        shortHash = Date.now().toString(36);
+    const isCI = process.env.GITHUB_ACTIONS === 'true';
+    
+    if (isCI) {
+        // In CI: Use actual commit hash for production versioning
+        try {
+            commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+            shortHash = commitHash.substring(0, 7);
+            console.log(`📌 CI Commit: ${shortHash}`);
+        } catch (error) {
+            console.warn('⚠️  Could not get commit hash in CI');
+            shortHash = Date.now().toString(36);
+        }
+    } else {
+        // Local development: Use 'dev' version to avoid mismatches
+        shortHash = 'dev';
+        commitHash = 'development';
+        console.log(`📌 Local Development Mode`);
     }
     
     // Create version manifest
