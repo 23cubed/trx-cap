@@ -76,12 +76,42 @@ jobs:
           require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
         "
     
+    - name: Update permanent latest.js file
+      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+      run: |
+        echo "🔄 Updating permanent latest.js file..."
+        
+        # Create docs directory if it doesn't exist
+        mkdir -p docs
+        
+        # Get current timestamp
+        TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        # Read the built bundle content
+        BUNDLE_CONTENT=$(cat dist/main.js)
+        
+        # Create the permanent latest.js file
+        cat > docs/latest.js << EOF
+        // TRX Cap Bundle - Auto-updated by GitHub Actions
+        // This file always contains the latest version
+        // Last updated: $TIMESTAMP
+        // Version: v$VERSION
+        // Permanent URL: https://23cubed.github.io/trx-cap/latest.js
+
+        $BUNDLE_CONTENT
+        EOF
+        
+        echo "✅ Updated docs/latest.js with latest bundle content"
+        echo "📦 Version: v$VERSION"
+        echo "🔗 Permanent URL: https://23cubed.github.io/trx-cap/latest.js"
+    
     - name: Commit and push changes
       if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add dist/ src/js/main.js package.json
+        git add dist/ src/js/main.js package.json docs/
         echo "Files to be committed:"
         git diff --cached --name-only
         if git diff --cached --quiet; then
@@ -123,6 +153,7 @@ jobs:
         echo "🚀 Latest changes should be available immediately"
         echo ""
         echo "📋 Available CDN URLs:"
+        echo "🔗 Permanent (GitHub Pages): https://23cubed.github.io/trx-cap/latest.js"
         echo "🔗 Latest: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js"
         echo "🔗 Main: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js"
         echo "🔗 Version: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@${{ steps.version.outputs.tag }}/dist/main.js" 
