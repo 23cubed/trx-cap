@@ -3,10 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const shuttle = document.querySelector('.gsap_grid-shuttle');
     const gridItems = document.querySelectorAll('.portfolio_grid .portfolio_item-gsap-green');
 
-    if (!wrapper || !shuttle || !gridItems.length) {
-        return;
-    }
-
     let isShuttleVisible = false;
     let hoverTimeout;
 
