@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     setTimeout(() => {
+        console.log("Executing pageLoadScene");
         pageLoadScene();
     }, 200);
 });
