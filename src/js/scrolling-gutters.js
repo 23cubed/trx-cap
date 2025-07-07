@@ -83,8 +83,6 @@ function initScrollingGutters() {
 }
 
 export { initScrollingGutters };
-
-initScrollingGutters();
   
 
   

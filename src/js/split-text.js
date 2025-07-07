@@ -77,5 +77,3 @@ function animateSplitText(element, duration = 0.6, ease = "trx-ease") {
 }
 
 export { splitTextElement, animateSplitText, initSplitText };
-
-initSplitText();

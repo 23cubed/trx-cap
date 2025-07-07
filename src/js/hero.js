@@ -171,5 +171,3 @@ function initHero() {
 }
 
 export { initHero };
-
-document.addEventListener('DOMContentLoaded', initHero);
