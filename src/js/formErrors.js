@@ -1,4 +1,3 @@
-// Form Code
 function initFormErrors(){
     $('[wr-type="error"]').hide()
     $('.error').removeClass('error')
