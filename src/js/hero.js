@@ -121,7 +121,7 @@ function pageLoadScene() {
             opacity: 1, 
             y: 0,
             duration: 0.8,
-            ease: "power2.out"
+            ease: "power2.inOut"
         },
         "heroContentAnimate-=0.5"
     )
