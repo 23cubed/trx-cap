@@ -14,15 +14,8 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
-    // Get the last commit timestamp for deterministic output
-    let timestamp;
-    try {
-        const gitDate = execSync('git log -1 --format=%cd --date=local', { encoding: 'utf8' }).trim();
-        timestamp = new Date(gitDate).toLocaleString('en-US', { timeZone: 'America/New_York' });
-    } catch (error) {
-        // Fallback to current time if not in git repo
-        timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
-    }
+    // Always use current timestamp - shows when commit was made
+    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     
     // Generate the main.js content - SIMPLE AND CLEAN
     const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
