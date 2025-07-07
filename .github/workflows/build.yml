@@ -3,20 +3,14 @@ name: Build and Deploy Bundle
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - '.parcelrc'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - '.parcelrc'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout repository
