@@ -12,4 +12,4 @@ echo "🔨 Building project..."
 npm run build
 
 echo "📦 Staging generated files..."
-git add src/js/main.js dist/main.js 
+git add src/js/main.js dist/main.js dist/main.js.map 
