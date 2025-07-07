@@ -18,7 +18,7 @@ Add this **ONE TIME** to your Webflow project's footer:
 ## 🚀 Current Version:
 - **Version**: e88c4c0
 - **Commit**: e88c4c0b74cb8326a17082fc06c69b14ae0690d0
-- **Generated**: 2025-07-07T04:32:34.588Z
+- **Generated**: 2025-07-07T04:29:43.936Z
 
 ## 📊 URLs:
 - **Loader**: https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/webflow-loader.js
