@@ -1,3 +1,9 @@
+import { initHero } from './hero.js';
+import { initHeader } from './navbar.js';
+import { initScrollingGutters } from './scrolling-gutters.js';
+import { initTextScroll } from './split-text-on-scroll.js';
+import { initSplitText } from './split-text.js';
+
 // Animation - Page Leave
 function pageTransitionIn(data) {
     const tl = gsap.timeline();
@@ -50,14 +56,17 @@ function initResetWebflow(data) {
     window.Webflow.require("ix2").init();
 }
 
-// Fire all scripts on page load
-function initScript() {
-
+function reinitializeAllScripts() {
+    initSplitText();
+    initTextScroll();
+    initHeader();
+    initScrollingGutters();
+    initHero();
 }
 
 function killAllScrollTriggers() {
     if (typeof ScrollTrigger !== 'undefined') {
-        ScrollTrigger.killAll(); // Kill all ScrollTrigger instances
+        ScrollTrigger.killAll();
     }
 }
 
@@ -72,6 +81,11 @@ function initPageTransitions() {
     }
 
     barba.hooks.leave(() => {
+        killAllScrollTriggers();
+    });
+
+    barba.hooks.after(() => {
+        reinitializeAllScripts();
     });
 
     barba.init({
@@ -85,6 +99,7 @@ function initPageTransitions() {
                 return handleEnter(data);
             },
             afterEnter(data) {
+                initResetWebflow(data);
             }
         }]
     });

@@ -155,7 +155,7 @@ function pageLoadScene() {
     );
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function initHero() {
     const heroHeading = document.querySelector("#heroHeading");
     if (heroHeading) {
         splitTextElement(heroHeading);
@@ -164,4 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         pageLoadScene();
     }, 200);
-});
+}
+
+export { initHero };
+
+document.addEventListener('DOMContentLoaded', initHero);

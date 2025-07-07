@@ -4,7 +4,7 @@ gsap.defaults({
   ease: "trx-ease",
 });
 
-  function initHeader() {
+function initHeader() {
     const tl = gsap.timeline({ paused: true });
     const navBarBG = document.querySelectorAll("#navbar .background");     
     const navLogoCapSm = document.getElementById("navLogoCapSm");
@@ -17,16 +17,16 @@ gsap.defaults({
     tl.to(TRXLogo, { y: "0.4rem", duration: 0.4 }, 0);
     tl.to(TRXLogo, { scale: 0.7, duration: 0.4 }, 0);
     tl.to(navLogoCapLg, { x: "1%", duration: 0.2 }, 0.1);
-    
 
-
-  ScrollTrigger.create({
-    trigger: document.body,
-    start: "top -1px",
-    animation: tl,
-    toggleActions: "play none none reverse"
-  });
+    ScrollTrigger.create({
+        trigger: document.body,
+        start: "top -1px",
+        animation: tl,
+        toggleActions: "play none none reverse"
+    });
 }
+
+export { initHeader };
 
 window.Webflow ||= [];
 window.Webflow.push(() => {

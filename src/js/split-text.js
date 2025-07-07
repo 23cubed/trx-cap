@@ -76,7 +76,6 @@ function animateSplitText(element, duration = 0.6, ease = "trx-ease") {
   );
 }
 
-// Export functions for use in other modules
-export { splitTextElement, animateSplitText };
+export { splitTextElement, animateSplitText, initSplitText };
 
 initSplitText();
