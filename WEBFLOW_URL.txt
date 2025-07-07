@@ -1,0 +1,1 @@
+https://cdn.jsdelivr.net/gh/23cubed/trx-cap@0e37f36f354d3b18c1fd1ca888ddb71b78cbe879/dist/main.js

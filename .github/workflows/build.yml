@@ -29,17 +29,14 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Create loader
-        run: npm run create-loader
-
-      - name: Commit and push dist files if changed
+      - name: Commit and push built files if changed
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add dist/
+          git add dist/main.js webflow-inserter.js
           if git diff --cached --quiet; then
-            echo "No changes to dist files"
+            echo "No changes to built files"
           else
-            git commit -m "chore: update dist files [skip ci]"
+            git commit -m "chore: update built files [skip ci]"
             git push
           fi 

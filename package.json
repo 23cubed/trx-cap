@@ -10,7 +10,7 @@
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
     "clean": "rm -rf dist && mkdir -p dist",
     "cdn-url": "node scripts/get-cdn-url.js",
-    "create-loader": "node scripts/create-loader.js"
+    "commit-url": "node scripts/generate-commit-url.js"
   },
   "keywords": [
     "portfolio",
