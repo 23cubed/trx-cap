@@ -1,19 +1,23 @@
 {
   "name": "trx-cap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TRX Capital portfolio website bundle",
   "scripts": {
     "generate-imports": "node scripts/generate-imports.js",
     "prebuild": "npm run generate-imports",
     "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
-    "predev": "npm run generate-imports", 
+    "predev": "npm run generate-imports",
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
     "clean": "rm -rf dist && mkdir -p dist"
   },
-  "keywords": ["portfolio", "webflow", "animations"],
+  "keywords": [
+    "portfolio",
+    "webflow",
+    "animations"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "parcel": "^2.12.0"
   }
-} 
+}
