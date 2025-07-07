@@ -52,7 +52,15 @@ const buildOptions = {
   // Use safer minification that doesn't generate eval
   minifyWhitespace: true,
   minifyIdentifiers: true,
-  minifySyntax: true
+  minifySyntax: true,
+  // Additional CSP-safe settings
+  define: {
+    'process.env.NODE_ENV': '"production"'
+  },
+  // Avoid dynamic imports that might cause eval
+  splitting: false,
+  // Use more conservative target
+  target: 'es2017'
 };
 
 async function build() {
@@ -81,7 +89,27 @@ async function build() {
       };
       await esbuild.build(debugOptions);
       
-      console.log('✅ Build complete! (both minified and debug versions)');
+      // Create a simple concatenation version that avoids all bundling issues
+      const simpleVersion = `
+/* TRX Capital Bundle (Simple) - Built: ${new Date().toISOString()} */
+(function() {
+  'use strict';
+  
+  ${fs.readFileSync('./src/js/split-text.js', 'utf8').replace('export { splitTextElement, animateSplitText };', '')}
+  
+  ${fs.readFileSync('./src/js/navbar.js', 'utf8')}
+  
+  ${fs.readFileSync('./src/js/portfolio-grid.js', 'utf8')}
+  
+  ${fs.readFileSync('./src/js/hero.js', 'utf8').replace('import { splitTextElement, animateSplitText } from \'./split-text.js\';', '')}
+  
+  console.log('TRX Capital simple bundle loaded successfully');
+})();
+      `;
+      
+      fs.writeFileSync('./dist/bundle.simple.js', simpleVersion);
+      
+      console.log('✅ Build complete! (minified, debug, and simple versions)');
     }
   } catch (error) {
     console.error('❌ Build failed:', error);
