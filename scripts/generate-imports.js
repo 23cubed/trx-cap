@@ -59,6 +59,9 @@ ${functionImports.join('\n')}
 // Re-export all functions for ES6 imports
 export { ${allExports.join(', ')} };
 
+// Also expose functions globally for simple script usage
+${allExports.map(name => `window.${name} = ${name};`).join('\n')}
+
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
 console.log('📅 Updated at ${timestamp} EST');

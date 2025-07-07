@@ -20,7 +20,17 @@ import { splitTextElement, animateSplitText, initSplitText } from './split-text.
 // Re-export all functions for ES6 imports
 export { initHero, initHeader, initPortfolioGrid, initScrollingGutters, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
+// Also expose functions globally for simple script usage
+window.initHero = initHero;
+window.initHeader = initHeader;
+window.initPortfolioGrid = initPortfolioGrid;
+window.initScrollingGutters = initScrollingGutters;
+window.initTextScroll = initTextScroll;
+window.splitTextElement = splitTextElement;
+window.animateSplitText = animateSplitText;
+window.initSplitText = initSplitText;
+
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./hero.js', './navbar.js', './page-transition.js', './portfolio-grid.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js']);
-console.log('📅 Updated at 7/7/2025, 4:18:54 PM EST');
+console.log('📅 Updated at 7/7/2025, 4:23:54 PM EST');
 console.log('🚀 Functions available for import:', ['initHero', 'initHeader', 'initPortfolioGrid', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
