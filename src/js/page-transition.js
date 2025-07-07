@@ -3,10 +3,12 @@ import { initHeader } from './navbar.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
 import { initTextScroll } from './split-text-on-scroll.js';
 import { initSplitText } from './split-text.js';
+import { initFormErrors } from './formErrors.js';
 
 // Animation - Page Leave
 function pageTransitionIn(data) {
     const tl = gsap.timeline();
+    const header = document.querySelector("#navbar");
 
     tl.to(data.current.container, {
         scale: 0.98,
@@ -27,6 +29,7 @@ function pageTransitionIn(data) {
 // Animation - Page Enter
 function pageTransitionOut(data) {
     const tl = gsap.timeline();
+    const header = document.querySelector("#navbar");
 
     gsap.set(data.next.container, {
         height: "0vh",
@@ -35,7 +38,7 @@ function pageTransitionOut(data) {
         borderRadius: "1rem",
     });
 
-    tl.to(data.next.container,{
+    tl.to(data.next.container, {
         height: "auto",
         overflow: "auto",
         scale: 1,
@@ -92,6 +95,11 @@ function initPageTransitions() {
         transitions: [{
             name: 'trx-transition',
             timeout: 7000,
+            once(data) {
+                document.fonts.ready.then(function () {
+                    initScript();
+                })
+            },
             leave(data) {
                 return handleLeaveTransition(data);
             },
@@ -100,6 +108,12 @@ function initPageTransitions() {
             },
             afterEnter(data) {
                 initResetWebflow(data);
+            }
+        }],
+        views: [{
+            namespace: 'contact',
+            afterEnter(data) {
+                initFormErrors();
             }
         }]
     });
