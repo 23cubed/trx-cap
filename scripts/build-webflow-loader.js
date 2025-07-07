@@ -6,6 +6,7 @@ function buildWebflowLoader() {
     console.log('🔧 Building Webflow loader system...');
     
     // Get version info - use different strategies for CI vs local
+    // Force CI refresh - updated 2025-07-07
     let commitHash = '';
     let shortHash = '';
     const isCI = process.env.GITHUB_ACTIONS === 'true';
