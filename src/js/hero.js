@@ -1,3 +1,4 @@
+// Hero animation module - handles page load animations and hero section
 import { splitTextElement, animateSplitText } from './split-text.js';
 
 function pageLoadScene() {
