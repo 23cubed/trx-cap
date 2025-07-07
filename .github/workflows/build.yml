@@ -64,6 +64,7 @@ jobs:
     
     - name: Auto-increment version and create release
       if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+      id: create-release
       run: |
         # Fetch all tags and releases
         git fetch --tags
@@ -110,5 +111,29 @@ jobs:
           --latest
         
         echo "✅ Successfully created release: $NEW_VERSION"
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Purge jsDelivr CDN cache
+      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+      run: |
+        NEW_VERSION="${{ steps.create-release.outputs.new_version }}"
+        
+        echo "🔄 Purging jsDelivr CDN cache for new version..."
+        
+        # Purge the new version
+        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@$NEW_VERSION/dist/main.js"
+        
+        # Purge @latest to force immediate update
+        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js"
+        
+        # Also purge main.js.map if it exists
+        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@$NEW_VERSION/dist/main.js.map" || true
+        curl -v "https://purge.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js.map" || true
+        
+        echo "✅ CDN cache purged successfully!"
+        echo "🚀 New version $NEW_VERSION should be available immediately"
+        echo "🔗 Test URLs:"
+        echo "   - https://cdn.jsdelivr.net/gh/23cubed/trx-cap@$NEW_VERSION/dist/main.js"
+        echo "   - https://cdn.jsdelivr.net/gh/23cubed/trx-cap@latest/dist/main.js" 
