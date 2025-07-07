@@ -14,23 +14,18 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
-    // Check if current file exists and read its imports section
-    let currentImports = '';
-    if (fs.existsSync(mainFile)) {
-        const currentContent = fs.readFileSync(mainFile, 'utf8');
-        const importsMatch = currentContent.match(/import '\.\/.*?';/g);
-        if (importsMatch) {
-            currentImports = importsMatch.join('\n');
-        }
+    // Get the last commit timestamp for deterministic output
+    let timestamp;
+    try {
+        const gitDate = execSync('git log -1 --format=%cd --date=local', { encoding: 'utf8' }).trim();
+        timestamp = new Date(gitDate).toLocaleString('en-US', { timeZone: 'America/New_York' });
+    } catch (error) {
+        // Fallback to current time if not in git repo
+        timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     }
     
-    // Only update if imports changed
-    if (imports !== currentImports) {
-        // Generate timestamp
-        const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
-        
-        // Generate the main.js content - SIMPLE AND CLEAN
-        const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
+    // Generate the main.js content - SIMPLE AND CLEAN
+    const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
 // Run 'npm run generate-imports' to update
 
 ${imports}
@@ -39,15 +34,11 @@ ${imports}
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
 console.log('📅 Updated at ${timestamp} EST');
 `;
-        
-        // Write the updated main.js
-        fs.writeFileSync(mainFile, mainContent);
-        
-        console.log(`✅ Generated imports for ${jsFiles.length} modules:`, jsFiles);
-        console.log('📝 main.js updated with new imports');
-    } else {
-        console.log(`✅ Imports unchanged for ${jsFiles.length} modules - skipping update`);
-    }
+    
+    // Write the updated main.js
+    fs.writeFileSync(mainFile, mainContent);
+    
+    console.log(`✅ Generated imports for ${jsFiles.length} modules:`, jsFiles);
 }
 
 generateImports(); 
