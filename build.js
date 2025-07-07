@@ -45,7 +45,14 @@ const buildOptions = {
   // Add timestamp banner
   banner: {
     js: `/* TRX Capital Bundle - Built: ${new Date().toISOString()} */`
-  }
+  },
+  // Prevent eval usage for CSP compliance
+  legalComments: 'none',
+  keepNames: false,
+  // Use safer minification that doesn't generate eval
+  minifyWhitespace: true,
+  minifyIdentifiers: true,
+  minifySyntax: true
 };
 
 async function build() {
@@ -56,8 +63,25 @@ async function build() {
       await context.watch();
     } else {
       console.log('🚀 Building bundle...');
+      
+      // Build minified version
       await esbuild.build(buildOptions);
-      console.log('✅ Build complete!');
+      
+      // Build non-minified version for debugging
+      const debugOptions = {
+        ...buildOptions,
+        minify: false,
+        minifyWhitespace: false,
+        minifyIdentifiers: false,
+        minifySyntax: false,
+        outfile: './dist/bundle.debug.js',
+        banner: {
+          js: `/* TRX Capital Bundle (Debug) - Built: ${new Date().toISOString()} */`
+        }
+      };
+      await esbuild.build(debugOptions);
+      
+      console.log('✅ Build complete! (both minified and debug versions)');
     }
   } catch (error) {
     console.error('❌ Build failed:', error);
