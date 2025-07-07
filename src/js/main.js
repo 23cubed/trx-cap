@@ -8,10 +8,10 @@ import './split-text.js';
 // Expose CDN URL function
 window.TRXCap = window.TRXCap || {};
 window.TRXCap.getCDNUrl = function() {
-    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@06dfaed/dist/main.js';
+    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@df6f06b/dist/main.js';
 };
 window.TRXCap.getCommitHash = function() {
-    return '06dfaed';
+    return 'df6f06b';
 };
 window.TRXCap.loadDynamically = function() {
     const script = document.createElement('script');
