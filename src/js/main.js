@@ -8,13 +8,13 @@ import './split-text.js';
 // Expose CDN URL function with static build reference
 window.TRXCap = window.TRXCap || {};
 window.TRXCap.getCDNUrl = function() {
-    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@c0d7a45/dist/main.js';
+    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@3da44be/dist/main.js';
 };
 window.TRXCap.getBuildId = function() {
-    return 'c0d7a45';
+    return '3da44be';
 };
 window.TRXCap.getBuildTime = function() {
-    return '2025-07-07T03:57:34.687Z';
+    return '2025-07-07T04:01:18.276Z';
 };
 window.TRXCap.loadDynamically = function() {
     const script = document.createElement('script');
@@ -23,3 +23,9 @@ window.TRXCap.loadDynamically = function() {
     document.head.appendChild(script);
     return script;
 };
+
+// Console log with timestamp for debugging
+console.log('✅ Bundle loaded from:', window.TRXCap.getCDNUrl());
+console.log('🏷️  Version:', window.TRXCap.getBuildId());
+console.log('⏰ Build time:', window.TRXCap.getBuildTime());
+console.log('🕐 Load time:', new Date().toISOString());

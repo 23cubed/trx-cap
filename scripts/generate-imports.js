@@ -55,6 +55,12 @@ window.TRXCap.loadDynamically = function() {
     document.head.appendChild(script);
     return script;
 };
+
+// Console log with timestamp for debugging
+console.log('✅ Bundle loaded from:', window.TRXCap.getCDNUrl());
+console.log('🏷️  Version:', window.TRXCap.getBuildId());
+console.log('⏰ Build time:', window.TRXCap.getBuildTime());
+console.log('🕐 Load time:', new Date().toISOString());
 `;
     
     // Write the updated main.js
