@@ -23,6 +23,11 @@ function pageTransitionIn(data) {
         duration: 0.8,
     });
 
+    tl.to(header, {
+        opacity: 0,
+        duration: 0.8,
+    }, 0);
+
     return tl;
 }
 
@@ -45,6 +50,11 @@ function pageTransitionOut(data) {
         borderRadius: "0rem",
         duration: 0.8,
     });
+
+    tl.to(header, {
+        opacity: 1,
+        duration: 0.8,
+    }, 0);
 
     return tl;
 }
