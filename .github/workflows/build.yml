@@ -52,12 +52,12 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add dist/ src/js/main.js WEBFLOW-URL.md
+        git add dist/ src/js/main.js WEBFLOW-URL.md WEBFLOW-INTEGRATION.md
         echo "Files to be committed:"
         git diff --cached --name-only
         if git diff --cached --quiet; then
           echo "No changes to commit after staging"
           exit 0
         fi
-        git commit -m "Auto-build: Update bundle and imports [skip ci]"
+        git commit -m "Auto-build: Update bundle, imports, and Webflow loader [skip ci]"
         git push origin main 

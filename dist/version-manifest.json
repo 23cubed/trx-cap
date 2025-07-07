@@ -1,0 +1,7 @@
+{
+  "version": "3eb1f83",
+  "commitHash": "3eb1f83273797f9f2471be70ad30c7c39436c7a3",
+  "timestamp": "2025-07-07T04:26:25.840Z",
+  "mainJsUrl": "https://cdn.jsdelivr.net/gh/23cubed/trx-cap@3eb1f83/dist/main.js",
+  "fallbackUrl": "https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js"
+}

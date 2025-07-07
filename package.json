@@ -4,8 +4,10 @@
   "description": "TRX Capital portfolio website bundle",
   "scripts": {
     "generate-imports": "node scripts/generate-imports.js",
+    "build-webflow": "node scripts/build-webflow-loader.js",
+    "test-webflow": "node scripts/test-webflow-loader.js",
     "prebuild": "npm run generate-imports",
-    "build": "parcel build src/js/main.js --dist-dir dist --public-url ./",
+    "build": "parcel build src/js/main.js --dist-dir dist --public-url ./ && npm run build-webflow",
     "predev": "npm run generate-imports", 
     "dev": "parcel watch src/js/main.js --dist-dir dist --public-url ./",
     "clean": "rm -rf dist && mkdir -p dist"
