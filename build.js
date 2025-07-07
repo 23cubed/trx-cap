@@ -5,14 +5,14 @@ const path = require('path');
 
 const isWatch = process.argv.includes('--watch');
 
-// Get all JS files (order doesn't matter - esbuild resolves dependencies)
+// Get all JS files (esbuild will resolve dependencies automatically)
 const jsFiles = glob.sync('./src/js/*.js');
 
 // Get all CSS files and combine them
 const cssFiles = glob.sync('./src/css/*.css');
 const combinedCSS = cssFiles.map(file => fs.readFileSync(file, 'utf8')).join('\n');
 
-// Create temp entry file  
+// Create temp entry file that imports all modules
 const tempEntry = `
 ${jsFiles.map(file => `import '${file.startsWith('./') ? file : './' + file}';`).join('\n')}
 console.log('TRX Capital bundle loaded successfully');
@@ -33,7 +33,12 @@ const buildOptions = {
   outfile: './dist/bundle.js',
   format: 'iife',
   target: 'es2015',
-  globalName: 'TRXCap'
+  globalName: 'TRXCap',
+  // Ensure proper module resolution
+  resolveExtensions: ['.js'],
+  loader: {
+    '.js': 'js'
+  }
 };
 
 async function build() {
