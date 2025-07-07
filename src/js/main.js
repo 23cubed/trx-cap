@@ -8,13 +8,13 @@ import './split-text.js';
 // Expose CDN URL function with static build reference
 window.TRXCap = window.TRXCap || {};
 window.TRXCap.getCDNUrl = function() {
-    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@60848aa/dist/main.js';
+    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@main/dist/main.js';
 };
 window.TRXCap.getBuildId = function() {
-    return '60848aa';
+    return 'f2be8f0';
 };
 window.TRXCap.getBuildTime = function() {
-    return '2025-07-07T04:06:27.922Z';
+    return '2025-07-07T04:08:34.805Z';
 };
 window.TRXCap.loadDynamically = function() {
     const script = document.createElement('script');

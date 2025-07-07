@@ -16,19 +16,17 @@ function generateImports() {
     
     // Generate static build identifier for CDN URL
     let buildId = '';
-    let cdnPath = '';
+    let cdnPath = '@main';  // Always use @main for consistency
     
-    // Try to get commit hash, but fall back to timestamp if not available
+    // Get commit hash for build ID only
     try {
         const commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
         buildId = commitHash.substring(0, 7);
-        cdnPath = `@${buildId}`;
-        console.log(`📌 Using commit hash for CDN: ${buildId}`);
+        console.log(`📌 Using @main CDN path with build ID: ${buildId}`);
     } catch (error) {
         // Fallback to timestamp-based build ID
         buildId = Date.now().toString(36);
-        cdnPath = `@main`;
-        console.log(`📌 Using timestamp build ID: ${buildId}, CDN path: ${cdnPath}`);
+        console.log(`📌 Using @main CDN path with timestamp build ID: ${buildId}`);
     }
     
     // Generate the main.js content
