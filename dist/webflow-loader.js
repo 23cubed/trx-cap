@@ -11,7 +11,9 @@
     function loadScript(url, callback) {
         const script = document.createElement('script');
         script.src = url;
-        script.onload = callback;
+        script.onload = function() {
+            if (callback) callback(null); // null = success
+        };
         script.onerror = function() {
             console.warn('🔥 TRX Cap: Failed to load', url);
             if (callback) callback(new Error('Failed to load script'));
