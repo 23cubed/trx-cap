@@ -5,5 +5,11 @@ if [ "$CI" = "true" ]; then
   exit 0
 fi
 
+echo "🔄 Generating imports..."
 npm run generate-imports
-git add src/js/main.js 
+
+echo "🔨 Building project..."
+npm run build
+
+echo "📦 Staging generated files..."
+git add src/js/main.js dist/main.js 
