@@ -15,7 +15,7 @@ function generateImports() {
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
     // Generate timestamp
-    const timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     
     // Generate the main.js content - SIMPLE AND CLEAN
     const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
@@ -25,7 +25,7 @@ ${imports}
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
-console.log('📅 Updated at ${timestamp}');
+console.log('📅 Updated at ${timestamp} EST');
 `;
     
     // Write the updated main.js
