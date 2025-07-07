@@ -16,7 +16,7 @@ function pageTransitionIn(data) {
         height: "100vh",
         duration: 0.8,
         borderRadius: "1rem",
-    });
+    }, 0);
 
     tl.to(data.current.container, {
         height: "0vh",
@@ -25,7 +25,7 @@ function pageTransitionIn(data) {
 
     tl.to(header, {
         opacity: 0,
-        duration: 0.8,
+        duration: 0.4,
     }, 0);
 
     return tl;
@@ -41,7 +41,7 @@ function pageTransitionOut(data) {
         overflow: "hidden",
         scale: 0.98,
         borderRadius: "1rem",
-    });
+    }, 0);
 
     tl.to(data.next.container, {
         height: "auto",
@@ -53,7 +53,7 @@ function pageTransitionOut(data) {
 
     tl.to(header, {
         opacity: 1,
-        duration: 0.8,
+        duration: 0.4,
     }, 0);
 
     return tl;
