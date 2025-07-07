@@ -14,15 +14,21 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
-    // Get current commit hash for CDN URL
-    let commitHash = '';
-    let shortHash = '';
+    // Generate static build identifier for CDN URL
+    let buildId = '';
+    let cdnPath = '';
+    
+    // Try to get commit hash, but fall back to timestamp if not available
     try {
-        commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-        shortHash = commitHash.substring(0, 7);
+        const commitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+        buildId = commitHash.substring(0, 7);
+        cdnPath = `@${buildId}`;
+        console.log(`📌 Using commit hash for CDN: ${buildId}`);
     } catch (error) {
-        console.warn('⚠️  Could not get git commit hash, using fallback');
-        shortHash = 'main';
+        // Fallback to timestamp-based build ID
+        buildId = Date.now().toString(36);
+        cdnPath = `@main`;
+        console.log(`📌 Using timestamp build ID: ${buildId}, CDN path: ${cdnPath}`);
     }
     
     // Generate the main.js content
@@ -31,13 +37,16 @@ function generateImports() {
 
 ${imports}
 
-// Expose CDN URL function
+// Expose CDN URL function with static build reference
 window.TRXCap = window.TRXCap || {};
 window.TRXCap.getCDNUrl = function() {
-    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@${shortHash}/dist/main.js';
+    return 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap${cdnPath}/dist/main.js';
 };
-window.TRXCap.getCommitHash = function() {
-    return '${shortHash}';
+window.TRXCap.getBuildId = function() {
+    return '${buildId}';
+};
+window.TRXCap.getBuildTime = function() {
+    return '${new Date().toISOString()}';
 };
 window.TRXCap.loadDynamically = function() {
     const script = document.createElement('script');
