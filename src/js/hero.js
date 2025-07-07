@@ -159,11 +159,12 @@ function initHero() {
     const heroHeading = document.querySelector("#heroHeading");
     if (heroHeading) {
         splitTextElement(heroHeading);
+        setTimeout(() => {
+            pageLoadScene();
+        }, 200);
     }
     
-    setTimeout(() => {
-        pageLoadScene();
-    }, 200);
+    
 }
 
 export { initHero };
