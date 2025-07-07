@@ -120,10 +120,10 @@ function pageLoadScene() {
         { 
             opacity: 1, 
             y: 0,
-            duration: 0.8,
-            ease: "power2.out"
+            duration: 1,
+            ease: "power2.inOut"
         },
-        "heroContentAnimate-=0.5"
+        "heroAnimate"
     )
     .call(() => {
         const heroHeading = document.querySelector("#heroHeading");
@@ -171,5 +171,3 @@ function initHero() {
 }
 
 export { initHero };
-
-document.addEventListener('DOMContentLoaded', initHero);

@@ -26,6 +26,4 @@ function initTextScroll() {
   });
 }
 
-export { initTextScroll };
-
-initTextScroll(); 
+export { initTextScroll }; 

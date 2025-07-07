@@ -27,8 +27,3 @@ function initHeader() {
 }
 
 export { initHeader };
-
-window.Webflow ||= [];
-window.Webflow.push(() => {
-  initHeader();
-});

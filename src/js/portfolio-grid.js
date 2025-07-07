@@ -1,11 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
+function initPortfolioGrid() {
     const wrapper = document.querySelector('.gsap_grid-wrapper');
     const shuttle = document.querySelector('.gsap_grid-shuttle');
     const gridItems = document.querySelectorAll('.portfolio_grid .portfolio_item-gsap-green');
 
     let isShuttleVisible = false;
     let hoverTimeout;
-
 
     function getOffset(el) {
         const rect = el.getBoundingClientRect();
@@ -15,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
             left: rect.left - wrapperRect.left
         };
     }
-
 
     function moveShuttleTo(target, duration = 0.2) {
         const position = getOffset(target);
@@ -68,4 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     wrapper.addEventListener('mouseleave', fadeOutShuttle);
-});
+}
+
+export { initPortfolioGrid };
