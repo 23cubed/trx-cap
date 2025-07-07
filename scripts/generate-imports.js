@@ -14,6 +14,9 @@ function generateImports() {
     // Generate static imports for bundling
     const imports = jsFiles.map(file => `import '${file}';`).join('\n');
     
+    // Generate timestamp
+    const timestamp = new Date().toLocaleString();
+    
     // Generate the main.js content - SIMPLE AND CLEAN
     const mainContent = `// Auto-generated imports - DO NOT EDIT MANUALLY
 // Run 'npm run generate-imports' to update
@@ -22,6 +25,7 @@ ${imports}
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
+console.log('📅 Updated at ${timestamp}');
 `;
     
     // Write the updated main.js
