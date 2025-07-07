@@ -89,41 +89,29 @@ async function build() {
       };
       await esbuild.build(debugOptions);
       
-      // Create a simple concatenation version that avoids all bundling issues
-      const simpleVersion = `
-/* TRX Capital Bundle (Simple) - Built: ${new Date().toISOString()} */
+      // Create simple concatenated version
+      const concatenatedContent = jsFiles.map(file => {
+        let content = fs.readFileSync(file, 'utf8');
+        // Remove ES6 imports/exports
+        content = content.replace(/import.*from.*['"];?\s*/g, '');
+        content = content.replace(/export\s*{[^}]*};\s*/g, '');
+        return content;
+      }).join('\n\n');
+      
+      const concatenatedVersion = `
+/* TRX Capital Bundle (Concatenated) - Built: ${new Date().toISOString()} */
 (function() {
   'use strict';
   
-  ${fs.readFileSync('./src/js/split-text.js', 'utf8')
-    .replace('export { splitTextElement, animateSplitText };', '')
-    .replace('CustomEase.create("trx-ease", "M0,0 C0.83,0 0.17,1 1,1");', '// CustomEase removed for CSP compliance')
-  }
+${concatenatedContent}
   
-  ${fs.readFileSync('./src/js/navbar.js', 'utf8')
-    .replace('CustomEase.create("trx-ease", "M0,0 C0.83,0 0.17,1 1,1");', '// CustomEase removed for CSP compliance')
-  }
-  
-  ${fs.readFileSync('./src/js/portfolio-grid.js', 'utf8')}
-  
-  ${fs.readFileSync('./src/js/hero.js', 'utf8')
-    .replace('import { splitTextElement, animateSplitText } from \'./split-text.js\';', '')
-  }
-  
-  console.log('TRX Capital simple bundle loaded successfully');
+  console.log('TRX Capital concatenated bundle loaded successfully');
 })();
       `;
       
-      // Create a CSP-safe version that uses standard easing
-      const cspSafeVersion = simpleVersion.replace(
-        /ease: "trx-ease"/g, 
-        'ease: "power2.out"'
-      );
+      fs.writeFileSync('./dist/bundle.concat.js', concatenatedVersion);
       
-      fs.writeFileSync('./dist/bundle.simple.js', simpleVersion);
-      fs.writeFileSync('./dist/bundle.csp-safe.js', cspSafeVersion);
-      
-      console.log('✅ Build complete! (minified, debug, simple, and CSP-safe versions)');
+             console.log('✅ Build complete! (minified, debug, and concatenated versions)');
     }
   } catch (error) {
     console.error('❌ Build failed:', error);
