@@ -42,7 +42,7 @@ For more control, you can use specific release tags:
 # Install dependencies
 npm install
 
-# Build production bundle
+# Build production bundle (automatically finds all JS/CSS files)
 npm run build
 
 # Development build with watch mode
@@ -67,7 +67,7 @@ trx-cap/
 ├── dist/
 │   ├── bundle.js             # Bundled JavaScript
 │   └── bundle.css            # Bundled CSS
-└── webpack.config.js         # Webpack configuration
+└── build.js                  # Simple build script using esbuild
 ```
 
 ## 📋 Requirements
@@ -102,14 +102,18 @@ Your Webflow project should include these elements for the animations to work:
 
 ## 🔄 Updating the Bundle
 
-1. Make changes to files in the `src/` directory
-2. Run `npm run build` to generate new bundle
-3. Commit and push changes to your repository
+1. **Add/edit files** in the `src/js/` or `src/css/` directories
+2. **No manual imports needed** - the build script automatically discovers all files
+3. Run `npm run build` to generate new bundle (or just push - GitHub Actions does this automatically)
 4. jsDeliver CDN will automatically serve the updated files
+
+### ✨ Zero Configuration
+Just add any `.js` file to `src/js/` or any `.css` file to `src/css/` and it will be automatically included in the bundle!
 
 ## 📝 Notes
 
-- The bundle is optimized for production with minification
-- Console logs are removed in production builds
-- Source maps are available for development builds
-- The bundle exposes itself as a UMD module named `TRXCap` 
+- **Built with esbuild** - Super fast and zero configuration
+- **Automatic file discovery** - No need to manually import files
+- **Production optimized** - Minified and optimized for CDN delivery
+- **Watch mode available** - Use `npm run dev` for development
+- The bundle exposes itself as an IIFE named `TRXCap` 

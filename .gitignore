@@ -1,5 +1,4 @@
 node_modules/
 *.log
 .DS_Store
-dist/bundle.js.map
-dist/bundle.css.map 
+temp-entry.js 
