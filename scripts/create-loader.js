@@ -50,9 +50,8 @@ function createLoader() {
     
     fs.writeFileSync('dist/loader.js', loaderScript);
     
-    // Also create a minified version
-    const minifiedLoader = loaderScript.replace(/\s+/g, ' ').replace(/\/\*[^*]*\*\//g, '');
-    fs.writeFileSync('dist/loader.min.js', minifiedLoader);
+    // Use unminified version for .min.js too (it's already small and safe)
+    fs.writeFileSync('dist/loader.min.js', loaderScript);
     
     const loaderUrl = `https://cdn.jsdelivr.net/gh/${repoUrl}/dist/loader.min.js`;
     
