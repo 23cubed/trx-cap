@@ -4,10 +4,11 @@
 import './hero.js';
 import './navbar.js';
 import './page-transition.js';
+import './portfolio-grid.js';
 import './scrolling-gutters.js';
 import './split-text-on-scroll.js';
 import './split-text.js';
 
 // Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', ['./hero.js', './navbar.js', './page-transition.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js']);
-console.log('📅 Updated at 7/7/2025, 12:16:27 PM EST');
+console.log('🚀 TRX Cap modules loaded:', ['./hero.js', './navbar.js', './page-transition.js', './portfolio-grid.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js']);
+console.log('📅 Updated at 7/7/2025, 1:39:24 PM EST');
