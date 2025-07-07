@@ -1,4 +1,5 @@
 // Hero animation module - handles page load animations and hero section
+// Test comment for pre-commit workflow
 import { splitTextElement, animateSplitText } from './split-text.js';
 
 function pageLoadScene() {
