@@ -25,9 +25,22 @@ jobs:
 
       - name: Validate imports are up to date
         run: |
+          # Save current import lines before generating
+          grep "^import '\\./" src/js/main.js > current_imports.txt
+          
+          # Generate fresh imports
           npm run generate-imports
-          if ! git diff --quiet src/js/main.js; then
+          
+          # Extract import lines from generated file
+          grep "^import '\\./" src/js/main.js > generated_imports.txt
+          
+          # Compare only the import lines (ignore timestamp)
+          if ! diff -q current_imports.txt generated_imports.txt > /dev/null; then
             echo "❌ Imports are out of date! Run 'npm run generate-imports' locally."
+            echo "Current imports:"
+            cat current_imports.txt
+            echo "Expected imports:"
+            cat generated_imports.txt
             exit 1
           else
             echo "✅ Imports are up to date"
