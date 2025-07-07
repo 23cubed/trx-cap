@@ -95,21 +95,35 @@ async function build() {
 (function() {
   'use strict';
   
-  ${fs.readFileSync('./src/js/split-text.js', 'utf8').replace('export { splitTextElement, animateSplitText };', '')}
+  ${fs.readFileSync('./src/js/split-text.js', 'utf8')
+    .replace('export { splitTextElement, animateSplitText };', '')
+    .replace('CustomEase.create("trx-ease", "M0,0 C0.83,0 0.17,1 1,1");', '// CustomEase removed for CSP compliance')
+  }
   
-  ${fs.readFileSync('./src/js/navbar.js', 'utf8')}
+  ${fs.readFileSync('./src/js/navbar.js', 'utf8')
+    .replace('CustomEase.create("trx-ease", "M0,0 C0.83,0 0.17,1 1,1");', '// CustomEase removed for CSP compliance')
+  }
   
   ${fs.readFileSync('./src/js/portfolio-grid.js', 'utf8')}
   
-  ${fs.readFileSync('./src/js/hero.js', 'utf8').replace('import { splitTextElement, animateSplitText } from \'./split-text.js\';', '')}
+  ${fs.readFileSync('./src/js/hero.js', 'utf8')
+    .replace('import { splitTextElement, animateSplitText } from \'./split-text.js\';', '')
+  }
   
   console.log('TRX Capital simple bundle loaded successfully');
 })();
       `;
       
-      fs.writeFileSync('./dist/bundle.simple.js', simpleVersion);
+      // Create a CSP-safe version that uses standard easing
+      const cspSafeVersion = simpleVersion.replace(
+        /ease: "trx-ease"/g, 
+        'ease: "power2.out"'
+      );
       
-      console.log('✅ Build complete! (minified, debug, and simple versions)');
+      fs.writeFileSync('./dist/bundle.simple.js', simpleVersion);
+      fs.writeFileSync('./dist/bundle.csp-safe.js', cspSafeVersion);
+      
+      console.log('✅ Build complete! (minified, debug, simple, and CSP-safe versions)');
     }
   } catch (error) {
     console.error('❌ Build failed:', error);

@@ -8,7 +8,7 @@
 // CustomEase removed for CSP compliance
 
 gsap.defaults({
-  ease: "trx-ease",
+  ease: "power2.out",
   duration: 0.6,
   stagger: 0.01
 });
@@ -112,7 +112,7 @@ initTextScroll();
   // CustomEase removed for CSP compliance
 
 gsap.defaults({
-  ease: "trx-ease",
+  ease: "power2.out",
 });
 
   function initHeader() {
