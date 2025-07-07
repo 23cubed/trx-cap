@@ -1,58 +1,37 @@
-name: Build Bundle
+name: Build and Commit dist/main.js
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build bundle
-      run: npm run build
-    
-    - name: Check for changes
-      id: verify-changed-files
-      run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "Changes detected, will commit and push"
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-          echo "No changes detected"
-        fi
-    
-    - name: Commit and push changes
-      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add dist/ src/js/main.js
-        git commit -m "Auto-build: Update bundle [skip ci]"
-        git push origin main
-    
-    - name: Success message
-      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
-      run: |
-        echo "🚀 Bundle built and committed!"
-        echo "📋 Your CDN URL: https://raw.githack.com/23cubed/trx-cap/main/dist/main.js"
-        echo "✅ Ready for Webflow - instant updates!" 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Commit and push dist/main.js if changed
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add dist/main.js
+          git diff --cached --quiet dist/main.js || git commit -m "chore: update dist/main.js [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
