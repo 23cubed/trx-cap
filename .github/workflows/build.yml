@@ -26,20 +26,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate imports
-        run: npm run generate-imports
-
       - name: Build project
         run: npm run build
 
-      - name: Commit and push changes if any
+      - name: Create loader
+        run: npm run create-loader
+
+      - name: Commit and push dist files if changed
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add src/js/main.js dist/main.js
+          git add dist/
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No changes to dist files"
           else
-            git commit -m "chore: update imports and build [skip ci]"
+            git commit -m "chore: update dist files [skip ci]"
             git push
           fi 
