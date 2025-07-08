@@ -59,3 +59,5 @@ function initFormErrors() {
     }
   })
 }
+
+export { initFormErrors };

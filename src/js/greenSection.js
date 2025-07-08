@@ -28,3 +28,5 @@ function animSectionsOnScroll() {
         },
     );
 }
+
+export { animSectionsOnScroll };
