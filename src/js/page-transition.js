@@ -43,12 +43,20 @@ function pageTransitionOut(data) {
         borderRadius: "1rem",
     }, 0);
 
+    const fullHeight = data.next.container.scrollHeight;
+
     tl.to(data.next.container, {
-        height: "auto",
-        overflow: "auto",
+        height: fullHeight,
         scale: 1,
         borderRadius: "0rem",
         duration: 0.8,
+        onUpdate: () => {
+            data.next.container.style.overflow = "hidden";
+        },
+        onComplete: () => {
+            data.next.container.style.height = "auto";
+            data.next.container.style.overflow = "auto";
+        }
     });
 
     tl.to(header, {
