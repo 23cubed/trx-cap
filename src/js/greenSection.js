@@ -11,16 +11,10 @@ function animSectionsOnScroll() {
     tl.fromTo(
         ".block_grid-scroll",
         {
-            top: negativeCornerRadius,
-            left: negativeCornerRadius,
-            right: negativeCornerRadius,
             borderTopLeftRadius: "0",
             borderTopRightRadius: "0",
         },
         {
-            top: "0rem",
-            left: "0rem",
-            right: "0rem",
             borderTopLeftRadius: cornerRadiusValue,
             borderTopRightRadius: cornerRadiusValue,
             duration: 1,
