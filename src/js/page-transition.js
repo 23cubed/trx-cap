@@ -136,13 +136,15 @@ function initPageTransitions() {
             },
             afterEnter(data) {
                 initResetWebflow(data);
+
+                if (data.next.namespace === 'contact') {
+                    initFormErrors();
+                }
             }
         }],
         views: [{
             namespace: 'contact',
             beforeEnter(data) {
-                console.log('initFormErrors');
-                initFormErrors();
             }
         }]
     });
