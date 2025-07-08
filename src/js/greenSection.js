@@ -1,7 +1,7 @@
 function animSectionsOnScroll() {
     const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: ".block_grid",
+          trigger: "#scroll",
           start: "top 90%",
           toggleActions: "play none none none",
         }
