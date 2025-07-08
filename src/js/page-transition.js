@@ -9,13 +9,14 @@ import { initFormErrors } from './formErrors.js';
 function pageTransitionIn(data) {
     const tl = gsap.timeline();
     const header = document.querySelector("#navbar");
+    const rect = data.current.container.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     gsap.set(data.current.container, {
         position: "absolute",
         top: rect.top + scrollTop,
         left: rect.left,
-        width: rect.width,
+        width: rect.width + "px",
         zIndex: 1000,
     });
 
