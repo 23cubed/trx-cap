@@ -123,11 +123,6 @@ function initPageTransitions() {
         transitions: [{
             name: 'trx-transition',
             timeout: 7000,
-            once(data) {
-                document.fonts.ready.then(function () {
-                    reinitializeAllScripts();
-                })
-            },
             leave(data) {
                 return handleLeaveTransition(data);
             },
