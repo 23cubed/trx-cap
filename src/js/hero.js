@@ -22,18 +22,8 @@ function animateHeroCTA() {
             flexGrow: 1,
             duration: 0.6,
             ease: "power2.out"
-        },
-        "+=0.35"
+        }
     )
-    .fromTo("#hero .hero-cta_text-mask",
-        { width: 0 },
-        {
-            width: "auto",
-            duration: 0.5,
-            ease: "power2.out"
-        },
-        "+=0.2"
-    );
     
     return tl;
 }
