@@ -49,6 +49,7 @@ barba.init({
           onComplete: () => {
             const heroCTA = document.querySelector("#hero .hero-cta");
             if (heroCTA) {
+              gsap.set(heroCTA, { opacity: 0 });
               animateHeroCTA();
             }
           }
