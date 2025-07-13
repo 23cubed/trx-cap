@@ -1,3 +1,5 @@
+import { setScrolled } from './navbar.js';
+
 barba.init({
     transitions: [{
       leave(data) {
@@ -30,6 +32,10 @@ barba.init({
         const cornerRadius = getComputedStyle(document.documentElement)
           .getPropertyValue('--block-system--corner-radius').trim();
         const cornerRadiusValue = parseFloat(cornerRadius);
+        
+        if (data.next.namespace !== 'home') {
+          setScrolled();
+        }
         
         return gsap.timeline()
           .set(data.next.container, { display: 'block' })
