@@ -1,4 +1,5 @@
 import { setScrolled, initNavbar } from './navbar.js';
+import { initFormErrors } from './formErrors.js';
 
 barba.init({
     transitions: [{
@@ -38,6 +39,9 @@ barba.init({
         }
         if (data.next.namespace == 'home') {
           initNavbar();
+        }
+        if (data.next.namespace == 'contact') {
+          initFormErrors();
         }
         
         return gsap.timeline()
