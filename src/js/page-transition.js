@@ -1,5 +1,6 @@
 import { setScrolled, initHeader } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
+import { animateHeroCTA } from './hero.js';
 
 barba.init({
     transitions: [{
@@ -44,7 +45,7 @@ barba.init({
           initFormErrors();
         }
         
-        return gsap.timeline()
+        const timeline = gsap.timeline()
           .set(data.next.container, { display: 'block' })
           .to('.transition-v2', {
             top: `-${cornerRadiusValue * 1.5}rem`,
@@ -64,7 +65,14 @@ barba.init({
             duration: 0.3,
             ease: 'power2.inOut'
           }, '-=0')
-          .set('.transition-cover', { display: 'none' })
+          .set('.transition-cover', { display: 'none' });
+        
+        const heroCTA = document.querySelector("#hero .hero-cta");
+        if (heroCTA) {
+          timeline.add(animateHeroCTA(), "+=0.1");
+        }
+        
+        return timeline;
       }
     }]
   });

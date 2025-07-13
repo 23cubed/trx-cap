@@ -5,6 +5,39 @@
 // Testing new build in pre-commit
 import { splitTextElement, animateSplitText } from './split-text.js';
 
+function animateHeroCTA() {
+    const tl = gsap.timeline();
+    
+    tl.fromTo("#hero .hero-cta",
+        { opacity: 0 },
+        {
+            opacity: 1,
+            duration: 0.8,
+            ease: "power2.out"
+        }
+    )
+    .fromTo("#hero .hero-cta",
+        { flexGrow: 0 },
+        {
+            flexGrow: 1,
+            duration: 0.6,
+            ease: "power2.out"
+        },
+        "+=0.3"
+    )
+    .fromTo("#hero .hero-cta_text-mask",
+        { width: 0 },
+        {
+            width: "auto",
+            duration: 0.5,
+            ease: "power2.out"
+        },
+        "+=0.2"
+    );
+    
+    return tl;
+}
+
 function pageLoadScene() {
     const tl = gsap.timeline();
     const computedStyle = getComputedStyle(document.documentElement);
@@ -152,4 +185,4 @@ function initHero() {
     }, 200);
 }
 
-export { initHero };
+export { initHero, animateHeroCTA };
