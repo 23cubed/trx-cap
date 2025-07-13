@@ -12,7 +12,7 @@ function animateHeroCTA() {
         { opacity: 0 },
         {
             opacity: 1,
-            duration: 0.8,
+            duration: 0.5,
             ease: "power2.out"
         }
     )
@@ -23,7 +23,7 @@ function animateHeroCTA() {
             duration: 0.6,
             ease: "power2.out"
         },
-        "+=0.3"
+        "+=0.35"
     )
     .fromTo("#hero .hero-cta_text-mask",
         { width: 0 },
