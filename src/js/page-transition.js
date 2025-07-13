@@ -23,14 +23,13 @@ function pageTransitionIn(data) {
     tl.to(data.current.container, {
         scale: 0.98,
         overflow: "hidden",
-        transformOrigin: "top center",
-        scaleY: 0,
+        height: "100vh",
         duration: 0.8,
         borderRadius: "1rem",
     }, 0);
 
     tl.to(data.current.container, {
-        scaleY: 1,
+        height: "0vh",
         duration: 0.8,
     });
 
