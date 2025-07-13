@@ -11,6 +11,11 @@ function initHeader() {
     const navLogoCapLg = document.getElementById("navLogoCapLg");
     const TRXLogo = document.getElementById("TRxLogo");
 
+    gsap.set(navBarBG, { opacity: 0 });
+    gsap.set(navLogoCapSm, { y: "0%" });
+    gsap.set(TRXLogo, { y: "0rem", scale: 1 });
+    gsap.set(navLogoCapLg, { x: "0%" });
+
     tl.fromTo(navBarBG, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
         
     tl.to(navLogoCapSm, { y: "-105%", duration: 0.2 }, 0);
