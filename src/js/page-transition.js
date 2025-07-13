@@ -1,4 +1,4 @@
-import { setScrolled } from './navbar.js';
+import { setScrolled, initNavbar } from './navbar.js';
 
 barba.init({
     transitions: [{
@@ -35,6 +35,9 @@ barba.init({
         
         if (data.next.namespace !== 'home') {
           setScrolled();
+        }
+        if (data.next.namespace == 'home') {
+          initNavbar();
         }
         
         return gsap.timeline()
