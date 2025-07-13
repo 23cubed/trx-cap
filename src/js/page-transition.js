@@ -23,13 +23,13 @@ function pageTransitionIn(data) {
     tl.to(data.current.container, {
         scale: 0.98,
         overflow: "hidden",
-        height: "100vh",
+        height: 1,
         duration: 0.8,
         borderRadius: "1rem",
     }, 0);
 
     tl.to(data.current.container, {
-        height: "0vh",
+        height: 0,
         duration: 0.8,
     });
 
@@ -123,6 +123,11 @@ function initPageTransitions() {
         transitions: [{
             name: 'trx-transition',
             timeout: 7000,
+            once(data) {
+                document.fonts.ready.then(function () {
+                    reinitializeAllScripts();
+                })
+            },
             leave(data) {
                 return handleLeaveTransition(data);
             },
