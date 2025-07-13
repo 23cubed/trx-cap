@@ -9,9 +9,9 @@ import { initFormErrors } from './formErrors.js';
 function pageTransitionIn(data) {
     const tl = gsap.timeline();
     const header = document.querySelector("#navbar");
-    const rect = data.current.container.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const transition = document.querySelector(".transition");
 
+    gsap.set(transition, { display: "block" });
     gsap.set(data.current.container, {
         position: "absolute",
         top: rect.top + scrollTop,
@@ -22,14 +22,11 @@ function pageTransitionIn(data) {
 
     tl.to(data.current.container, {
         scale: 0.98,
-        overflow: "hidden",
-        height: "100vh",
         duration: 0.8,
         borderRadius: "1rem",
     }, 0);
 
     tl.to(data.current.container, {
-        height: "0vh",
         duration: 0.8,
     });
 
@@ -47,26 +44,14 @@ function pageTransitionOut(data) {
     const header = document.querySelector("#navbar");
 
     gsap.set(data.next.container, {
-        height: "0vh",
-        overflow: "hidden",
         scale: 0.98,
         borderRadius: "1rem",
     }, 0);
 
-    const fullHeight = data.next.container.scrollHeight;
-
     tl.to(data.next.container, {
-        height: fullHeight,
         scale: 1,
         borderRadius: "0rem",
         duration: 0.8,
-        onUpdate: () => {
-            data.next.container.style.overflow = "hidden";
-        },
-        onComplete: () => {
-            data.next.container.style.height = "auto";
-            data.next.container.style.overflow = "auto";
-        }
     });
 
     tl.to(header, {
