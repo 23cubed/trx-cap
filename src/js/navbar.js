@@ -26,4 +26,16 @@ function initHeader() {
     });
 }
 
-export { initHeader };
+function setScrolled() {
+    const navBarBG = document.querySelectorAll("#navbar .background");     
+    const navLogoCapSm = document.getElementById("navLogoCapSm");
+    const navLogoCapLg = document.getElementById("navLogoCapLg");
+    const TRXLogo = document.getElementById("TRxLogo");
+
+    gsap.set(navBarBG, { opacity: 1 });
+    gsap.set(navLogoCapSm, { y: "-105%" });
+    gsap.set(TRXLogo, { y: "0.4rem", scale: 0.7 });
+    gsap.set(navLogoCapLg, { x: "1%" });
+}
+
+export { initHeader, setScrolled };
