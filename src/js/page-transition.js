@@ -45,7 +45,14 @@ barba.init({
           initFormErrors();
         }
         
-        const timeline = gsap.timeline()
+        const timeline = gsap.timeline({
+          onComplete: () => {
+            const heroCTA = document.querySelector("#hero .hero-cta");
+            if (heroCTA) {
+              animateHeroCTA();
+            }
+          }
+        })
           .set(data.next.container, { display: 'block' })
           .to('.transition-v2', {
             top: `-${cornerRadiusValue * 1.5}rem`,
@@ -66,11 +73,6 @@ barba.init({
             ease: 'power2.inOut'
           }, '-=0')
           .set('.transition-cover', { display: 'none' });
-        
-        const heroCTA = document.querySelector("#hero .hero-cta");
-        if (heroCTA) {
-          timeline.add(animateHeroCTA(), "+=0.1");
-        }
         
         return timeline;
       }
