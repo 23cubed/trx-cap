@@ -31,6 +31,11 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
+        const heroCTA = document.querySelector("#hero .hero-cta");
+        if (heroCTA) {
+          gsap.set(heroCTA, { opacity: 0 });
+        }
+
         const cornerRadius = getComputedStyle(document.documentElement)
           .getPropertyValue('--block-system--corner-radius').trim();
         const cornerRadiusValue = parseFloat(cornerRadius);
@@ -47,9 +52,7 @@ barba.init({
         
         const timeline = gsap.timeline({
           onComplete: () => {
-            const heroCTA = document.querySelector("#hero .hero-cta");
             if (heroCTA) {
-              gsap.set(heroCTA, { opacity: 0 });
               animateHeroCTA();
             }
           }
