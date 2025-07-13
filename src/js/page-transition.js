@@ -1,4 +1,4 @@
-import { setScrolled, initNavbar } from './navbar.js';
+import { setScrolled, initHeader } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 
 barba.init({
@@ -38,7 +38,7 @@ barba.init({
           setScrolled();
         }
         if (data.next.namespace == 'home') {
-          initNavbar();
+          initHeader();
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();
