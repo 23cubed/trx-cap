@@ -54,6 +54,7 @@ barba.init({
           }
         })
           .set(data.next.container, { display: 'block' })
+          .call(() => ScrollTrigger.refresh())
           .to('.transition-v2', {
             top: `-${cornerRadiusValue * 1.5}rem`,
             left: `-${cornerRadiusValue * 1.5}rem`,
