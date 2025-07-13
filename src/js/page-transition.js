@@ -57,7 +57,6 @@ barba.init({
             duration: 0.3,
             ease: 'power2.inOut'
           }, '-=0')
-          .set('.transition-mask-v2', { overflow: 'visible' })
           .set('.transition-cover', { display: 'none' })
       }
     }]
