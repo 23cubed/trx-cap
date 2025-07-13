@@ -14,7 +14,7 @@ function initHeader() {
     gsap.set(navBarBG, { opacity: 0 });
     gsap.set(navLogoCapSm, { y: "0%" });
     gsap.set(TRXLogo, { y: "0rem", scale: 1 });
-    gsap.set(navLogoCapLg, { x: "0%" });
+    gsap.set(navLogoCapLg, { x: "-100%" });
 
     tl.fromTo(navBarBG, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
         
