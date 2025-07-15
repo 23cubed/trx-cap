@@ -1,6 +1,7 @@
 import { setScrolled, initHeader } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
+import { initScrollingGutters } from './scrolling-gutters.js';
 
 barba.init({
     transitions: [{
@@ -45,6 +46,7 @@ barba.init({
         }
         if (data.next.namespace == 'home') {
           initHeader();
+          initScrollingGutters();
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();
