@@ -1,6 +1,3 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
 function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) return console.error('Canvas id="texture-canvas" not found.');
@@ -8,21 +5,21 @@ function initParticleField() {
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    var renderer = new window.THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
 
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
+    var scene = new window.THREE.Scene();
+    var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
     camera.position.set(0, 0, 80);
 
     // crisp dot texture via SVG
     var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-    var dotTexture = new THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+    var dotTexture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
     // prepare for DNA model load
-    var gltfLoader = new GLTFLoader();
+    var gltfLoader = new window.GLTFLoader();
     var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@bfce75cfaf510a177a553bf3f44ed850367417aa/src/assets/DNA.gltf';
     var dots; // will hold THREE.Points
 
@@ -37,10 +34,10 @@ function initParticleField() {
             }
         });
 
-        var buffer = new THREE.BufferGeometry();
-        buffer.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positionsArr), 3));
+        var buffer = new window.THREE.BufferGeometry();
+        buffer.setAttribute('position', new window.THREE.BufferAttribute(new Float32Array(positionsArr), 3));
 
-        var material = new THREE.ShaderMaterial({
+        var material = new window.THREE.ShaderMaterial({
             uniforms: { dotTexture: { value: dotTexture } },
             vertexShader: `
                 void main() {
