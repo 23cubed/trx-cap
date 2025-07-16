@@ -1,4 +1,4 @@
-function initParticleField() {
+async function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) {
         console.error('Canvas id="texture-canvas" not found.');
@@ -8,7 +8,8 @@ function initParticleField() {
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    var renderer = new window.THREE.WebGPURenderer({ canvas: canvas, antialias: true, alpha: true });
+    await renderer.init();
     renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 1);
@@ -143,7 +144,13 @@ function initParticleField() {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initParticleField);
+    document.addEventListener('DOMContentLoaded', () => {
+        initParticleField().catch(error => {
+            console.error('Failed to initialize particle field:', error);
+        });
+    });
 } else {
-    initParticleField();
+    initParticleField().catch(error => {
+        console.error('Failed to initialize particle field:', error);
+    });
 }
