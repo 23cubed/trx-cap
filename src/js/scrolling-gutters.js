@@ -1,3 +1,5 @@
+CustomEase.create("trx-ease", "M0,0 C0.83,0 0.17,1 1,1");
+
 function initScrollingGutters() {
     const gutterObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export function initParticleField() {
+function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) return console.error('Canvas id="texture-canvas" not found.');
 
@@ -41,7 +41,7 @@ export function initParticleField() {
         buffer.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positionsArr), 3));
 
         var material = new THREE.ShaderMaterial({
-            uniforms: { texture: { value: dotTexture } },
+            uniforms: { dotTexture: { value: dotTexture } },
             vertexShader: `
                 void main() {
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -49,9 +49,9 @@ export function initParticleField() {
                 }
             `,
             fragmentShader: `
-                uniform sampler2D texture;
+                uniform sampler2D dotTexture;
                 void main() {
-                    vec4 c = texture2D(texture, gl_PointCoord);
+                    vec4 c = texture2D(dotTexture, gl_PointCoord);
                     gl_FragColor = vec4(1.0, 1.0, 1.0, c.a);
                 }
             `,
@@ -89,4 +89,6 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initParticleField);
 } else {
     initParticleField();
-} 
+}
+
+export { initParticleField }; 
