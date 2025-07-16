@@ -1,4 +1,7 @@
-function initParticleField() {
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+export function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) return console.error('Canvas id="texture-canvas" not found.');
 
@@ -19,7 +22,7 @@ function initParticleField() {
     var dotTexture = new THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
     // prepare for DNA model load
-    var gltfLoader = new THREE.GLTFLoader();
+    var gltfLoader = new GLTFLoader();
     var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@bfce75cfaf510a177a553bf3f44ed850367417aa/src/assets/DNA.gltf';
     var dots; // will hold THREE.Points
 
@@ -86,4 +89,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initParticleField);
 } else {
     initParticleField();
-}
+} 
