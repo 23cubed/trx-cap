@@ -132,7 +132,7 @@ async function initParticleField() {
                     particleSystem.scale.setScalar(20);
                     
                     scene.add(particleSystem);
-                    renderer.render(scene, camera);
+                    renderer.setAnimationLoop(() => renderer.render(scene, camera));
                 }
             );
         },
