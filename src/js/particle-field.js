@@ -55,7 +55,7 @@ function initParticleField() {
             transparent: true
         });
 
-        dots = new THREE.Points(buffer, material);
+        dots = new window.THREE.Points(buffer, material);
         scene.add(dots);
 
         // start rendering once model is in
