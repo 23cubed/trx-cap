@@ -1,8 +1,6 @@
-import * as THREE from 'three/build/three.webgpu.js';
-import * as TSL from 'three/build/three.tsl.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
 
-Object.assign(THREE, TSL);
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 window.THREE = THREE;
 window.GLTFLoader = GLTFLoader;

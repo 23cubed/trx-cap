@@ -1,4 +1,4 @@
-async function initParticleField() {
+function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) {
         console.error('Canvas id="texture-canvas" not found.');
@@ -8,8 +8,7 @@ async function initParticleField() {
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new window.THREE.WebGPURenderer({ canvas: canvas, antialias: true, alpha: true });
-    await renderer.init();
+    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 1);
@@ -112,7 +111,7 @@ async function initParticleField() {
                 'data:image/svg+xml;base64,' + btoa(svg),
                 function(texture) {
                     // Texture loaded successfully, create particle system
-                    var particleMaterial = new window.THREE.PointsNodeMaterial({
+                    var particleMaterial = new window.THREE.PointsMaterial({
                         color: 0x00ffff,
                         size: 0.2,
                         sizeAttenuation: true,
@@ -132,7 +131,7 @@ async function initParticleField() {
                     particleSystem.scale.setScalar(20);
                     
                     scene.add(particleSystem);
-                    renderer.setAnimationLoop(() => renderer.render(scene, camera));
+                    renderer.render(scene, camera);
                 }
             );
         },
@@ -144,13 +143,7 @@ async function initParticleField() {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initParticleField().catch(error => {
-            console.error('Failed to initialize particle field:', error);
-        });
-    });
+    document.addEventListener('DOMContentLoaded', initParticleField);
 } else {
-    initParticleField().catch(error => {
-        console.error('Failed to initialize particle field:', error);
-    });
+    initParticleField();
 }
