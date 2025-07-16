@@ -68,8 +68,13 @@ console.log('📅 Updated at ${timestamp} EST');
 console.log('🚀 Functions available for import:', [${allExports.map(name => `'${name}'`).join(', ')}]);
 `;
     
-    // Write the updated main.js
-    fs.writeFileSync(mainFile, mainContent);
+    try {
+        // Write the updated main.js
+        fs.writeFileSync(mainFile, mainContent);
+    } catch (error) {
+        console.error('❌ Error writing to main.js:', error);
+        throw error;
+    }
     
     console.log(`✅ Generated imports for ${jsFiles.length} modules:`, jsFiles);
     console.log(`✅ Functions available for ES6 import:`, allExports);
