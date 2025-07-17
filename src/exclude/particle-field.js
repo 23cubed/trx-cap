@@ -47,7 +47,7 @@ function initParticleField() {
             mesh.geometry.computeVertexNormals();
             // Setup sampler and sample exactly numParticles
             var numParticles = 5000;
-            var sampler = new window.THREE.MeshSurfaceSampler(mesh).build();
+            var sampler = new window.MeshSurfaceSampler(mesh).build();
             var positions = new Float32Array(numParticles * 3);
             var colors = new Float32Array(numParticles * 3);
             var tempPosition = new window.THREE.Vector3();

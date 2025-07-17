@@ -4,4 +4,4 @@ import { MeshSurfaceSampler } from '../../node_modules/three/examples/jsm/math/M
 
 window.THREE = THREE;
 window.GLTFLoader = GLTFLoader;
-window.THREE.MeshSurfaceSampler = MeshSurfaceSampler;
+window.MeshSurfaceSampler = MeshSurfaceSampler;
