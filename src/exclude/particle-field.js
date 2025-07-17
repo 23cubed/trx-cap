@@ -9,9 +9,14 @@ function initParticleField() {
         height = canvas.offsetHeight;
 
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 1);
+
+    // Start a render loop for crisp particles
+    renderer.setAnimationLoop(function() {
+        renderer.render(scene, camera);
+    });
 
     var scene = new window.THREE.Scene();
     var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
@@ -23,75 +28,6 @@ function initParticleField() {
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    function extractVerticesFromObject(object) {
-        var vertices = [];
-        
-        object.traverse(function(child) {
-            if (child.isMesh && child.geometry) {
-                var geometry = child.geometry;
-                var positionAttribute = geometry.attributes.position;
-                
-                if (positionAttribute) {
-                    var matrix = child.matrixWorld;
-                    var tempVertex = new window.THREE.Vector3();
-                    
-                    // Extract all vertices
-                    for (var i = 0; i < positionAttribute.count; i++) {
-                        tempVertex.fromBufferAttribute(positionAttribute, i);
-                        tempVertex.applyMatrix4(matrix);
-                        vertices.push(tempVertex.x, tempVertex.y, tempVertex.z);
-                    }
-                    
-                    // Sample additional points from triangle faces to fill gaps
-                    if (geometry.index) {
-                        var indexAttribute = geometry.index;
-                        var samplesPerTriangle = 8; // Number of random samples per triangle
-                        
-                        for (var i = 0; i < indexAttribute.count; i += 3) {
-                            var a = indexAttribute.getX(i);
-                            var b = indexAttribute.getX(i + 1);
-                            var c = indexAttribute.getX(i + 2);
-                            
-                            var vertA = new window.THREE.Vector3().fromBufferAttribute(positionAttribute, a);
-                            var vertB = new window.THREE.Vector3().fromBufferAttribute(positionAttribute, b);
-                            var vertC = new window.THREE.Vector3().fromBufferAttribute(positionAttribute, c);
-                            
-                            // Apply world matrix
-                            vertA.applyMatrix4(matrix);
-                            vertB.applyMatrix4(matrix);
-                            vertC.applyMatrix4(matrix);
-                            
-                            // Sample random points on triangle surface
-                            for (var j = 0; j < samplesPerTriangle; j++) {
-                                var r1 = Math.random();
-                                var r2 = Math.random();
-                                
-                                // Ensure point is inside triangle
-                                if (r1 + r2 > 1) {
-                                    r1 = 1 - r1;
-                                    r2 = 1 - r2;
-                                }
-                                
-                                var sampledPoint = new window.THREE.Vector3();
-                                sampledPoint.copy(vertA);
-                                sampledPoint.multiplyScalar(1 - r1 - r2);
-                                
-                                var tempB = vertB.clone().multiplyScalar(r1);
-                                var tempC = vertC.clone().multiplyScalar(r2);
-                                
-                                sampledPoint.add(tempB).add(tempC);
-                                
-                                vertices.push(sampledPoint.x, sampledPoint.y, sampledPoint.z);
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        return vertices;
-    }
-
     var loader = new window.GLTFLoader();
     var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@bfce75cfaf510a177a553bf3f44ed850367417aa/src/assets/DNA.gltf';
 
@@ -100,40 +36,57 @@ function initParticleField() {
         function (gltf) {
             gltf.scene.updateMatrixWorld(true);
             
-            var vertices = extractVerticesFromObject(gltf.scene);
-            
+            // Uniformly sample points on the mesh surface using MeshSurfaceSampler
+            // Find the first Mesh child
+            var mesh = null;
+            gltf.scene.traverse(function(child) {
+                if (child.isMesh) mesh = child;
+            });
+            if (!mesh) return;
+            // Optionally ensure normals are current for shading
+            mesh.geometry.computeVertexNormals();
+            // Setup sampler and sample exactly numParticles
+            var numParticles = 5000;
+            var sampler = new window.THREE.MeshSurfaceSampler(mesh).build();
+            var positions = new Float32Array(numParticles * 3);
+            var colors = new Float32Array(numParticles * 3);
+            var tempPosition = new window.THREE.Vector3();
+            for (var i = 0; i < numParticles; i++) {
+                sampler.sample(tempPosition);
+                positions[3 * i]     = tempPosition.x;
+                positions[3 * i + 1] = tempPosition.y;
+                positions[3 * i + 2] = tempPosition.z;
+                // white color
+                colors[3 * i]     = 1;
+                colors[3 * i + 1] = 1;
+                colors[3 * i + 2] = 1;
+            }
             var particleGeometry = new window.THREE.BufferGeometry();
-            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(vertices, 3));
-            
-            // crisp dot texture via SVG
+            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
+
+            // Load crisp dot texture via SVG
             var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-            var dotTexture = new window.THREE.TextureLoader().load(
-                'data:image/svg+xml;base64,' + btoa(svg),
-                function(texture) {
-                    // Texture loaded successfully, create particle system
-                    var particleMaterial = new window.THREE.PointsMaterial({
-                        color: 0x00ffff,
-                        size: 0.2,
-                        sizeAttenuation: true,
-                        transparent: true,
-                        opacity: 0.8,
-                        blending: window.THREE.AdditiveBlending,
-                        map: texture
-                    });
-                    
-                    var particleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-                    
-                    var box = new window.THREE.Box3().setFromObject(particleSystem);
-                    var center = box.getCenter(new window.THREE.Vector3());
-                    
-                    particleSystem.position.sub(center);
-                    particleSystem.rotation.x = Math.PI / 2;
-                    particleSystem.scale.setScalar(20);
-                    
-                    scene.add(particleSystem);
-                    renderer.render(scene, camera);
-                }
-            );
+            var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+
+            // Create PointsMaterial with fixed screen size and vertex colors
+            var particleMaterial = new window.THREE.PointsMaterial({
+                size: 5,
+                sizeAttenuation: false,
+                vertexColors: true,
+                map: texture,
+                alphaTest: 0.5
+            });
+
+            var particleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+            var box = new window.THREE.Box3().setFromObject(particleSystem);
+            var center = box.getCenter(new window.THREE.Vector3());
+
+            particleSystem.position.sub(center);
+            particleSystem.rotation.x = Math.PI / 2;
+            particleSystem.scale.setScalar(20);
+
+            scene.add(particleSystem);
         },
         undefined,
         function (error) {
