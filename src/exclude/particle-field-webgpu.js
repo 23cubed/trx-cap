@@ -8,7 +8,7 @@ function initParticleField() {
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    var renderer = new window.WebGPURenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 1);
@@ -75,7 +75,7 @@ function initParticleField() {
             var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
             // Create PointsMaterial with fixed screen size and vertex colors
-            var particleMaterial = new window.THREE.PointsMaterial({
+            var particleMaterial = new window.PointsNodeMaterial({
                 size: 5,
                 sizeAttenuation: false,
                 vertexColors: true,
