@@ -1,11 +1,11 @@
-function initParticleIconCard(meshUrl, iconCardId, particleColor, maxParticles, useMeshSample) {
-    var iconCard = document.getElementById(iconCardId);
-    if (!iconCard) {
+function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSample) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) {
         return;
     }
 
-    var canvas = iconCard.querySelector('.icon-card-icon-canvas');
-    if (!canvas) {
+    var meshUrl = canvas.getAttribute('data-mesh-url');
+    if (!meshUrl) {
         return;
     }
 
@@ -26,8 +26,8 @@ function initParticleIconCard(meshUrl, iconCardId, particleColor, maxParticles, 
     var particleSystem = null;
     var mouse = new window.THREE.Vector2();
     var mouseWorldPos = new window.THREE.Vector3();
-    var repulsionRadius = 10;
-    var repulsionStrength = 2;
+    var repulsionRadius = 15;
+    var repulsionStrength = 4;
     var repulsionOffsets = null;
     var basePositions = null;
     
@@ -73,11 +73,14 @@ function initParticleIconCard(meshUrl, iconCardId, particleColor, maxParticles, 
                 var colors = new Float32Array(numParticles * 3);
                 
                 if (useMeshSample) {
+                    // Use proper mesh surface sampling
+                    var sampler = new window.MeshSurfaceSampler(mesh).build();
+                    var tempPosition = new window.THREE.Vector3();
                     for (var i = 0; i < numParticles; i++) {
-                        var randomIndex = Math.floor(Math.random() * totalVertices);
-                        positions[3 * i] = positionAttribute.getX(randomIndex);
-                        positions[3 * i + 1] = positionAttribute.getY(randomIndex);
-                        positions[3 * i + 2] = positionAttribute.getZ(randomIndex);
+                        sampler.sample(tempPosition);
+                        positions[3 * i] = tempPosition.x;
+                        positions[3 * i + 1] = tempPosition.y;
+                        positions[3 * i + 2] = tempPosition.z;
                         
                         colors[3 * i] = particleColor.r;
                         colors[3 * i + 1] = particleColor.g;
@@ -162,7 +165,7 @@ function initParticleIconCard(meshUrl, iconCardId, particleColor, maxParticles, 
                 var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
                 var particleMaterial = new window.THREE.PointsMaterial({
-                    size: 1,
+                    size: 0.9,
                     sizeAttenuation: false,
                     vertexColors: true,
                     map: texture,
@@ -295,19 +298,29 @@ function initParticleIconCard(meshUrl, iconCardId, particleColor, maxParticles, 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         initParticleIconCard(
-            'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@97179b960bea711960734281ef5832a603e19a97/src/assets/Fingerprint.glb',
-            'icon-card-healthcare-tech',
+            'healthcare-tech-canvas',
             { r: 0.451, g: 0.451, b: 0.451 },
             3000,
             false
         );
+        initParticleIconCard(
+            'biotech-canvas',
+            { r: 0.451, g: 0.451, b: 0.451 },
+            3000,
+            true
+        );
     });
 } else {
     initParticleIconCard(
-        'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@97179b960bea711960734281ef5832a603e19a97/src/assets/Fingerprint.glb',
-        'icon-card-healthcare-tech',
+        'healthcare-tech-canvas',
         { r: 0.451, g: 0.451, b: 0.451 },
         3000,
         false
+    );
+    initParticleIconCard(
+        'biotech-canvas',
+        { r: 0.451, g: 0.451, b: 0.451 },
+        3000,
+        true
     );
 }
