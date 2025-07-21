@@ -16,7 +16,7 @@ function initTRex(scene, setParticleSystem) {
             if (!mesh) return;
             
             // Scale the mesh geometry before extracting vertices
-            var meshScale = 50;
+            var meshScale = 120;
             mesh.geometry.scale(meshScale, meshScale, meshScale);
             
             // Optionally ensure normals are current for shading
@@ -58,6 +58,8 @@ function initTRex(scene, setParticleSystem) {
                 positions[3 * i + 1] = y;
                 positions[3 * i + 2] = x;
             }
+            
+
 
             var particleGeometry = new window.THREE.BufferGeometry();
             particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
@@ -69,7 +71,7 @@ function initTRex(scene, setParticleSystem) {
 
             // Create PointsMaterial with fixed screen size and vertex colors
             var particleMaterial = new window.THREE.PointsMaterial({
-                size: 1,
+                size: 1.5,
                 sizeAttenuation: false,
                 vertexColors: true,
                 map: texture,
@@ -79,6 +81,7 @@ function initTRex(scene, setParticleSystem) {
             });
 
             var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+            newParticleSystem.position.set(60, -5, 0); // Position T-Rex to the right and slightly down
 
             scene.add(newParticleSystem);
             setParticleSystem(newParticleSystem);
@@ -108,7 +111,7 @@ function initDNAHelix(scene, setParticleSystem) {
             if (!mesh) return;
             
             // Scale the mesh geometry before sampling particles
-            var meshScale = 20;
+            var meshScale = 45;
             mesh.geometry.scale(meshScale, meshScale, meshScale);
             
             // Optionally ensure normals are current for shading
@@ -162,7 +165,7 @@ function initDNAHelix(scene, setParticleSystem) {
 
         // Create PointsMaterial with fixed screen size and vertex colors
         var particleMaterial = new window.THREE.PointsMaterial({
-            size: 1,
+            size: 3,
             sizeAttenuation: false,
             vertexColors: true,
             map: texture,
@@ -172,6 +175,7 @@ function initDNAHelix(scene, setParticleSystem) {
         });
 
         var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+        newParticleSystem.position.set(40, 0, 0); // Position DNA to the right
 
         setParticleSystem(newParticleSystem);
         },
@@ -195,7 +199,7 @@ function initParticleField() {
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0x000000, 0);
 
     var scene = new window.THREE.Scene();
     var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
@@ -211,6 +215,8 @@ function initParticleField() {
     var morphProgress = 0;
     var morphDuration = 2000; // 2 seconds
     var morphStartTime = 0;
+    var startPosition = new window.THREE.Vector3();
+    var targetPosition = new window.THREE.Vector3();
     
     // Mouse repulsion variables
     var mouse = new window.THREE.Vector2();
@@ -219,10 +225,14 @@ function initParticleField() {
     var repulsionStrength = 0.4;
     var repulsionOffsets = null; // Store current repulsion offsets for each particle
     
+    // Rotation smoothing variables
+    var currentRotation = 0;
+    var rotationEaseSpeed = 0.05; // How fast rotation responds to mouse changes
+    
     // Depth-based opacity settings
-    var depthRange = 0.1; // Z-distance range for opacity falloff
-    var minOpacity = 0.1; // Minimum opacity for furthest particles
-    var maxOpacity = 1.0; // Maximum opacity for nearest particles
+    var depthRange = 20; // Z-distance range for opacity falloff
+    var minOpacity = 0.5; // Minimum opacity for furthest particles
+    var maxOpacity = 0.5; // Maxiamum opacity for nearest particles
 
     function updateDepthBasedColors() {
         if (!particleSystem) return;
@@ -268,6 +278,7 @@ function initParticleField() {
             // Use easing function for smooth animation
             var easedProgress = 0.5 - 0.5 * Math.cos(morphProgress * Math.PI);
             
+            // Animate particle positions
             var positionAttribute = particleSystem.geometry.getAttribute('position');
             for (var i = 0; i < positionAttribute.count; i++) {
                 var startX = currentPositions[3 * i];
@@ -286,6 +297,9 @@ function initParticleField() {
             }
             positionAttribute.needsUpdate = true;
             
+            // Animate particle system position
+            particleSystem.position.lerpVectors(startPosition, targetPosition, easedProgress);
+            
             if (morphProgress >= 1) {
                 isMorphing = false;
                 currentPositions = targetPositions;
@@ -302,14 +316,42 @@ function initParticleField() {
             var positionAttribute = particleSystem.geometry.getAttribute('position');
             var easeSpeed = 0.08; // How fast particles respond to repulsion
             
+            // Transform mouse world position to particle system's local coordinate space
+            // Account for both position and rotation
+            var relativeMouseX = mouseWorldPos.x - particleSystem.position.x;
+            var relativeMouseY = mouseWorldPos.y - particleSystem.position.y;
+            
+            // Apply inverse Y-axis rotation to get mouse position in particle system's local space
+            // Y-axis rotation affects X and Z coordinates, but since we're working mostly in X-Y plane (Z≈0):
+            var actualRotation = particleSystem.rotation.y;
+            var cosRotation = Math.cos(-actualRotation);
+            var sinRotation = Math.sin(-actualRotation);
+            
+            // For Y-axis rotation: newX = x*cos(θ) + z*sin(θ), but z≈0, so newX ≈ x*cos(θ)
+            // Approximate inverse transformation (ignoring z): localX = worldX / cos(θ)
+            var localMouseX = cosRotation !== 0 ? relativeMouseX / cosRotation : relativeMouseX;
+            var localMouseY = relativeMouseY; // Y coordinate is unaffected by Y-axis rotation
+            
             for (var i = 0; i < positionAttribute.count; i++) {
-                // Get base position (current morph state)
+                // Get base position (current morph state without repulsion)
                 var baseX, baseY, baseZ;
                 if (isMorphing) {
-                    // Use current morphing position from the position attribute
-                    baseX = positionAttribute.getX(i);
-                    baseY = positionAttribute.getY(i);
-                    baseZ = positionAttribute.getZ(i);
+                    // During morphing, calculate the pure morph position without repulsion
+                    var startX = currentPositions[3 * i];
+                    var startY = currentPositions[3 * i + 1];
+                    var startZ = currentPositions[3 * i + 2];
+                    
+                    var endX = targetPositions[3 * i];
+                    var endY = targetPositions[3 * i + 1];
+                    var endZ = targetPositions[3 * i + 2];
+                    
+                    var elapsed = Date.now() - morphStartTime;
+                    var progress = Math.min(elapsed / morphDuration, 1);
+                    var easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                    
+                    baseX = startX + (endX - startX) * easedProgress;
+                    baseY = startY + (endY - startY) * easedProgress;
+                    baseZ = startZ + (endZ - startZ) * easedProgress;
                 } else {
                     // Use stored current positions
                     baseX = currentPositions[3 * i];
@@ -317,9 +359,9 @@ function initParticleField() {
                     baseZ = currentPositions[3 * i + 2];
                 }
                 
-                // Calculate distance from particle to mouse
-                var dx = baseX - mouseWorldPos.x;
-                var dy = baseY - mouseWorldPos.y;
+                // Calculate distance from particle to mouse (using local coordinate space)
+                var dx = baseX - localMouseX;
+                var dy = baseY - localMouseY;
                 var distance = Math.sqrt(dx * dx + dy * dy);
                 
                 // Calculate target repulsion offset
@@ -361,7 +403,19 @@ function initParticleField() {
         }
         
         if (particleSystem) {
-            //particleSystem.rotation.y += 0.01;
+            // Smooth rotation based on mouse position
+            // Left side (-1) = -30 degrees, Right side (+1) = +15 degrees
+            var leftRotation = -30 * Math.PI / 180; // -30 degrees in radians
+            var rightRotation = 15 * Math.PI / 180; // +15 degrees in radians
+            
+            // Interpolate between rotations based on mouse.x (-1 to +1)
+            // Convert mouse.x from [-1, 1] to [0, 1] for interpolation
+            var t = (mouse.x + 1) / 2;
+            var targetRotation = leftRotation + (rightRotation - leftRotation) * t;
+            
+            // Smoothly interpolate current rotation toward target rotation
+            currentRotation += (targetRotation - currentRotation) * rotationEaseSpeed;
+            particleSystem.rotation.y = currentRotation;
         }
         renderer.render(scene, camera);
     });
@@ -373,7 +427,7 @@ function initParticleField() {
     scene.add(directionalLight);
 
     function morphToTarget(targetPos) {
-        if (isMorphing || !particleSystem || !currentPositions || !targetPos) return;
+        if (!particleSystem || !currentPositions || !targetPos) return;
         
         targetPositions = targetPos;
         isMorphing = true;
@@ -381,25 +435,14 @@ function initParticleField() {
         morphStartTime = Date.now();
     }
 
-    function toggleParticleSystem() {
-        if (isMorphing) return;
-        
-        if (isShowingTRex) {
-            if (dnaPositions) {
-                morphToTarget(dnaPositions);
-                isShowingTRex = false;
-            }
-        } else {
-            if (tRexPositions) {
-                morphToTarget(tRexPositions);
-                isShowingTRex = true;
-            }
-        }
-    }
 
-    // Mouse tracking for repulsion effect
+
+    // Mouse tracking for repulsion effect and morph triggering
     function updateMousePosition(event) {
+        // Get canvas rectangle to properly map coordinates
         var rect = canvas.getBoundingClientRect();
+        
+        // Use canvas dimensions to match camera aspect ratio
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
@@ -411,14 +454,60 @@ function initParticleField() {
         var dir = vector.sub(camera.position).normalize();
         var distance = -camera.position.z / dir.z;
         mouseWorldPos.copy(camera.position).add(dir.multiplyScalar(distance));
+        
+        // Trigger morph based on cursor position
+        // Left side (mouse.x < 0) = DNA, Right side (mouse.x >= 0) = T-Rex
+        if (mouse.x < 0 && isShowingTRex) {
+            // Switch to DNA
+            if (dnaPositions) {
+                // If currently morphing, capture current morph positions as new start (without repulsion)
+                if (isMorphing) {
+                    var newCurrentPositions = new Float32Array(currentPositions.length);
+                    
+                    // Calculate pure morph positions without repulsion offsets
+                    var elapsed = Date.now() - morphStartTime;
+                    var progress = Math.min(elapsed / morphDuration, 1);
+                    var easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                    
+                    for (var j = 0; j < currentPositions.length / 3; j++) {
+                        var startX = currentPositions[3 * j];
+                        var startY = currentPositions[3 * j + 1];
+                        var startZ = currentPositions[3 * j + 2];
+                        
+                        var endX = targetPositions[3 * j];
+                        var endY = targetPositions[3 * j + 1];
+                        var endZ = targetPositions[3 * j + 2];
+                        
+                        newCurrentPositions[3 * j] = startX + (endX - startX) * easedProgress;
+                        newCurrentPositions[3 * j + 1] = startY + (endY - startY) * easedProgress;
+                        newCurrentPositions[3 * j + 2] = startZ + (endZ - startZ) * easedProgress;
+                    }
+                    
+                    currentPositions = newCurrentPositions;
+                }
+                startPosition.copy(particleSystem.position);
+                targetPosition.set(40, 0, 0); // DNA position
+                morphToTarget(dnaPositions);
+                isShowingTRex = false;
+            }
+        } else if (mouse.x >= 0 && !isShowingTRex) {
+            // Switch to T-Rex
+            if (tRexPositions) {
+                // If currently morphing, capture current positions as new start
+                if (isMorphing) {
+                    var positionAttribute = particleSystem.geometry.getAttribute('position');
+                    currentPositions = new Float32Array(positionAttribute.array);
+                }
+                startPosition.copy(particleSystem.position);
+                targetPosition.set(65, -10, 0); // T-Rex position
+                morphToTarget(tRexPositions);
+                isShowingTRex = true;
+            }
+        }
     }
     
     // Add event listeners
-    canvas.addEventListener('mousemove', updateMousePosition);
-    canvas.addEventListener('click', function(event) {
-        event.preventDefault();
-        toggleParticleSystem();
-    });
+    window.addEventListener('mousemove', updateMousePosition);
 
     // Initialize T-Rex and store positions
     initTRex(scene, function(ps) {

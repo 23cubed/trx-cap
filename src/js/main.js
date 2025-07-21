@@ -11,6 +11,7 @@ import './portfolio-grid.js';
 import './scrolling-gutters.js';
 import './split-text-on-scroll.js';
 import './split-text.js';
+import './text-read-more.js';
 import './three-js-module.js';
 
 // Import functions to re-export for ES6 module usage
@@ -43,6 +44,6 @@ window.animateSplitText = animateSplitText;
 window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './portfolio-grid.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 7/19/2025, 2:01:19 PM EST');
+console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './portfolio-grid.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './text-read-more.js', './three-js-module.js']);
+console.log('📅 Updated at 7/20/2025, 10:59:54 PM EST');
 console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initHeader', 'setScrolled', 'pageLoader', 'initPortfolioGrid', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
