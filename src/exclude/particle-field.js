@@ -1,3 +1,9 @@
+// Position configuration - single source of truth
+var MESH_POSITIONS = {
+    TREX: { x: 60, y: -5, z: 0 },
+    DNA: { x: 40, y: -40, z: 0 }
+};
+
 function initTRex(scene, setParticleSystem) {
     var loader = new window.GLTFLoader();
     var tRexUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@24ae1e4fd28d49513b02d608aebfad9b71e24b4e/src/assets/t-rex.glb';
@@ -81,7 +87,7 @@ function initTRex(scene, setParticleSystem) {
             });
 
             var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-            newParticleSystem.position.set(60, -5, 0); // Position T-Rex to the right and slightly down
+            newParticleSystem.position.set(MESH_POSITIONS.TREX.x, MESH_POSITIONS.TREX.y, MESH_POSITIONS.TREX.z);
 
             scene.add(newParticleSystem);
             setParticleSystem(newParticleSystem);
@@ -95,7 +101,7 @@ function initTRex(scene, setParticleSystem) {
 
 function initDNAHelix(scene, setParticleSystem) {
     var loader = new window.GLTFLoader();
-    var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@bfce75cfaf510a177a553bf3f44ed850367417aa/src/assets/DNA.gltf';
+    var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@9d0d8d4d456323041e25cbfd5d329340e9c12059/src/assets/DNA-2.glb';
 
     loader.load(
         dnaUrl,
@@ -111,7 +117,7 @@ function initDNAHelix(scene, setParticleSystem) {
             if (!mesh) return;
             
             // Scale the mesh geometry before sampling particles
-            var meshScale = 45;
+            var meshScale = 2;
             mesh.geometry.scale(meshScale, meshScale, meshScale);
             
             // Optionally ensure normals are current for shading
@@ -150,9 +156,7 @@ function initDNAHelix(scene, setParticleSystem) {
                 var z = positions[3 * i + 2] - centerZ;
                 
                             // Apply 90-degree rotation around x-axis: (x, y, z) -> (x, -z, y)
-            positions[3 * i] = x;
-            positions[3 * i + 1] = -z;
-            positions[3 * i + 2] = y;
+           
         }
 
         var particleGeometry = new window.THREE.BufferGeometry();
@@ -175,7 +179,7 @@ function initDNAHelix(scene, setParticleSystem) {
         });
 
         var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-        newParticleSystem.position.set(40, 0, 0); // Position DNA to the right
+        newParticleSystem.position.set(MESH_POSITIONS.DNA.x, MESH_POSITIONS.DNA.y, MESH_POSITIONS.DNA.z);
 
         setParticleSystem(newParticleSystem);
         },
@@ -486,7 +490,7 @@ function initParticleField() {
                     currentPositions = newCurrentPositions;
                 }
                 startPosition.copy(particleSystem.position);
-                targetPosition.set(40, 0, 0); // DNA position
+                targetPosition.set(MESH_POSITIONS.DNA.x, MESH_POSITIONS.DNA.y, MESH_POSITIONS.DNA.z);
                 morphToTarget(dnaPositions);
                 isShowingTRex = false;
             }
@@ -499,7 +503,7 @@ function initParticleField() {
                     currentPositions = new Float32Array(positionAttribute.array);
                 }
                 startPosition.copy(particleSystem.position);
-                targetPosition.set(65, -10, 0); // T-Rex position
+                targetPosition.set(MESH_POSITIONS.TREX.x, MESH_POSITIONS.TREX.y, MESH_POSITIONS.TREX.z);
                 morphToTarget(tRexPositions);
                 isShowingTRex = true;
             }

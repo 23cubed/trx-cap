@@ -1,6 +1,6 @@
 function initTRex(scene, setParticleSystem) {
     var loader = new window.GLTFLoader();
-    var tRexUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@24ae1e4fd28d49513b02d608aebfad9b71e24b4e/src/assets/t-rex.glb';
+    var tRexUrl = 'https://raw.githack.com/23cubed/trx-cap/9d0d8d4d456323041e25cbfd5d329340e9c12059/src/assets/DNA-Tree.glb';
 
     loader.load(
         tRexUrl,
@@ -8,34 +8,51 @@ function initTRex(scene, setParticleSystem) {
             gltf.scene.updateMatrixWorld(true);
         
             // Use vertex mapping instead of surface sampling for T-Rex
-            // Find the first Mesh child
-            var mesh = null;
+            // Find all meshes and combine them
+            var meshes = [];
+            var meshCount = 0;
+            var totalVertices = 0;
             gltf.scene.traverse(function(child) {
-                if (child.isMesh) mesh = child;
+                if (child.isMesh) {
+                    meshCount++;
+                    var vertexCount = child.geometry.getAttribute('position').count;
+                    console.log('Found mesh #' + meshCount + ':', child.name, 'vertices:', vertexCount);
+                    meshes.push(child);
+                    totalVertices += vertexCount;
+                }
             });
-            if (!mesh) return;
+            console.log('Total meshes found:', meshCount, 'Total vertices:', totalVertices);
+            if (meshes.length === 0) return;
             
-            // Scale the mesh geometry before extracting vertices
-            var meshScale = 120;
-            mesh.geometry.scale(meshScale, meshScale, meshScale);
+            // Scale all mesh geometries before extracting vertices
+            var meshScale = 4;
+            meshes.forEach(function(mesh) {
+                mesh.geometry.scale(meshScale, meshScale, meshScale);
+                mesh.geometry.computeVertexNormals();
+            });
             
-            // Optionally ensure normals are current for shading
-            mesh.geometry.computeVertexNormals();
-            // Use vertex mapping - extract all vertices from the mesh
-            var positionAttribute = mesh.geometry.getAttribute('position');
-            var numParticles = positionAttribute.count;
+            // Use vertex mapping - extract all vertices from all meshes
+            var numParticles = totalVertices;
+            console.log('DNA Tree - Number of particles generated:', numParticles);
             var positions = new Float32Array(numParticles * 3);
             var colors = new Float32Array(numParticles * 3);
             
-            for (var i = 0; i < numParticles; i++) {
-                positions[3 * i]     = positionAttribute.getX(i);
-                positions[3 * i + 1] = positionAttribute.getY(i);
-                positions[3 * i + 2] = positionAttribute.getZ(i);
-                // white color
-                colors[3 * i]     = 1;
-                colors[3 * i + 1] = 1;
-                colors[3 * i + 2] = 1;
-            }
+            var particleIndex = 0;
+            meshes.forEach(function(mesh) {
+                var positionAttribute = mesh.geometry.getAttribute('position');
+                var vertexCount = positionAttribute.count;
+                
+                for (var i = 0; i < vertexCount; i++) {
+                    positions[3 * particleIndex]     = positionAttribute.getX(i);
+                    positions[3 * particleIndex + 1] = positionAttribute.getY(i);
+                    positions[3 * particleIndex + 2] = positionAttribute.getZ(i);
+                    // white color
+                    colors[3 * particleIndex]     = 1;
+                    colors[3 * particleIndex + 1] = 1;
+                    colors[3 * particleIndex + 2] = 1;
+                    particleIndex++;
+                }
+            });
             // Calculate center of mass from positions to center the geometry
             var centerX = 0, centerY = 0, centerZ = 0;
             for (var i = 0; i < numParticles; i++) {
@@ -47,16 +64,16 @@ function initTRex(scene, setParticleSystem) {
             centerY /= numParticles;
             centerZ /= numParticles;
             
-            // Center all positions around origin and apply y-axis rotation (-90 degrees)
+            // Center all positions around origin and apply x-axis rotation (90 degrees)
             for (var i = 0; i < numParticles; i++) {
                 var x = positions[3 * i] - centerX;
                 var y = positions[3 * i + 1] - centerY;
                 var z = positions[3 * i + 2] - centerZ;
                 
-                // Apply +90 degree rotation around y-axis: (x, y, z) -> (-z, y, x)
-                positions[3 * i] = -z;
-                positions[3 * i + 1] = y;
-                positions[3 * i + 2] = x;
+                // Apply 90 degree rotation around x-axis to make tree upright: (x, y, z) -> (x, z, -y)
+                positions[3 * i] = x;
+                positions[3 * i + 1] = z;
+                positions[3 * i + 2] = -y;
             }
             
 
@@ -71,7 +88,7 @@ function initTRex(scene, setParticleSystem) {
 
             // Create PointsMaterial with fixed screen size and vertex colors
             var particleMaterial = new window.THREE.PointsMaterial({
-                size: 1.5,
+                size: 0.8,
                 sizeAttenuation: false,
                 vertexColors: true,
                 map: texture,
@@ -81,7 +98,7 @@ function initTRex(scene, setParticleSystem) {
             });
 
             var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-            newParticleSystem.position.set(60, -5, 0); // Position T-Rex to the right and slightly down
+            newParticleSystem.position.set(25, 12, 0); // Position T-Rex to the right and slightly down
 
             scene.add(newParticleSystem);
             setParticleSystem(newParticleSystem);
@@ -231,8 +248,8 @@ function initParticleField() {
     
     // Depth-based opacity settings
     var depthRange = 20; // Z-distance range for opacity falloff
-    var minOpacity = 0.5; // Minimum opacity for furthest particles
-    var maxOpacity = 0.5; // Maxiamum opacity for nearest particles
+    var minOpacity = 0.3; // Minimum opacity for furthest particles
+    var maxOpacity = 0.8; // Maximum opacity for nearest particles
 
     function updateDepthBasedColors() {
         if (!particleSystem) return;
@@ -328,8 +345,8 @@ function initParticleField() {
             var sinRotation = Math.sin(-actualRotation);
             
             // For Y-axis rotation: newX = x*cos(θ) + z*sin(θ), but z≈0, so newX ≈ x*cos(θ)
-            // Approximate inverse transformation (ignoring z): localX = worldX / cos(θ)
-            var localMouseX = cosRotation !== 0 ? relativeMouseX / cosRotation : relativeMouseX;
+            // Inverse transformation: localX = worldX * cos(θ)
+            var localMouseX = relativeMouseX * cosRotation;
             var localMouseY = relativeMouseY; // Y coordinate is unaffected by Y-axis rotation
             
             for (var i = 0; i < positionAttribute.count; i++) {
