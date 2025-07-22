@@ -200,10 +200,10 @@ function initParticleField() {
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
-    renderer.setClearColor(0x004f2d, 1);
+    renderer.setClearColor(0x000000, 0);
 
     // Store renderer reference for cleanup
     if (!window.activeRenderers) {
