@@ -203,7 +203,7 @@ function initParticleField() {
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(0x004f2d, 1);
 
     // Store renderer reference for cleanup
     if (!window.activeRenderers) {
@@ -285,6 +285,11 @@ function initParticleField() {
 
     // Start a render loop for crisp particles
     renderer.setAnimationLoop(function() {
+        // Handle canvas resizing
+        if (resizeRendererToDisplaySize(renderer)) {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+        }
         if (particleSystem && isMorphing) {
             var elapsed = Date.now() - morphStartTime;
             morphProgress = Math.min(elapsed / morphDuration, 1);
@@ -518,6 +523,18 @@ function initParticleField() {
                 isShowingTRex = true;
             }
         }
+    }
+    
+    // Handle window resize using Three.js standard approach
+    function resizeRendererToDisplaySize(renderer) {
+        var canvas = renderer.domElement;
+        var width = canvas.clientWidth;
+        var height = canvas.clientHeight;
+        var needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+            renderer.setSize(width, height, false);
+        }
+        return needResize;
     }
     
     // Add event listeners
