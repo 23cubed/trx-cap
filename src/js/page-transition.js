@@ -6,6 +6,11 @@ import { initScrollingGutters } from './scrolling-gutters.js';
 barba.init({
     transitions: [{
       leave(data) {
+        // Clean up THREE.js renderers before killing all tweens
+        if (window.cleanupParticleRenderers) {
+          window.cleanupParticleRenderers();
+        }
+        
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
         

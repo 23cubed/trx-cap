@@ -1,3 +1,5 @@
+window.activeRenderers = window.activeRenderers || [];
+
 function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -16,6 +18,13 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
+    
+    // Store renderer reference for cleanup
+    window.activeRenderers.push({
+        renderer: renderer,
+        canvas: canvas,
+        canvasId: canvasId
+    });
     
     canvas.style.backgroundColor = 'transparent';
 
@@ -65,6 +74,69 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                 
                 mesh.geometry.computeVertexNormals();
 
+                // Calculate total surface area
+                var totalSurfaceArea = 0;
+                var positionAttribute = mesh.geometry.getAttribute('position');
+                var indexAttribute = mesh.geometry.getIndex();
+                
+                if (indexAttribute) {
+                    // Indexed geometry
+                    for (var i = 0; i < indexAttribute.count; i += 3) {
+                        var a = indexAttribute.getX(i);
+                        var b = indexAttribute.getX(i + 1);
+                        var c = indexAttribute.getX(i + 2);
+                        
+                        var vA = new window.THREE.Vector3(
+                            positionAttribute.getX(a),
+                            positionAttribute.getY(a),
+                            positionAttribute.getZ(a)
+                        );
+                        var vB = new window.THREE.Vector3(
+                            positionAttribute.getX(b),
+                            positionAttribute.getY(b),
+                            positionAttribute.getZ(b)
+                        );
+                        var vC = new window.THREE.Vector3(
+                            positionAttribute.getX(c),
+                            positionAttribute.getY(c),
+                            positionAttribute.getZ(c)
+                        );
+                        
+                        // Calculate triangle area using cross product
+                        var ab = vB.clone().sub(vA);
+                        var ac = vC.clone().sub(vA);
+                        var triangleArea = ab.cross(ac).length() * 0.5;
+                        totalSurfaceArea += triangleArea;
+                    }
+                } else {
+                    // Non-indexed geometry
+                    for (var i = 0; i < positionAttribute.count; i += 3) {
+                        var vA = new window.THREE.Vector3(
+                            positionAttribute.getX(i),
+                            positionAttribute.getY(i),
+                            positionAttribute.getZ(i)
+                        );
+                        var vB = new window.THREE.Vector3(
+                            positionAttribute.getX(i + 1),
+                            positionAttribute.getY(i + 1),
+                            positionAttribute.getZ(i + 1)
+                        );
+                        var vC = new window.THREE.Vector3(
+                            positionAttribute.getX(i + 2),
+                            positionAttribute.getY(i + 2),
+                            positionAttribute.getZ(i + 2)
+                        );
+                        
+                        // Calculate triangle area using cross product
+                        var ab = vB.clone().sub(vA);
+                        var ac = vC.clone().sub(vA);
+                        var triangleArea = ab.cross(ac).length() * 0.5;
+                        totalSurfaceArea += triangleArea;
+                    }
+                }
+                
+                console.log('Mesh surface area for', canvasId + ':', totalSurfaceArea.toFixed(2), 'square units');
+
                 var positionAttribute = mesh.geometry.getAttribute('position');
                 var totalVertices = positionAttribute.count;
                 
@@ -87,9 +159,9 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                         colors[3 * i + 2] = particleColor.b;
                     }
                 } else {
-                    var step = Math.floor(totalVertices / numParticles);
+                    // Evenly distribute particles across all vertices
                     for (var i = 0; i < numParticles; i++) {
-                        var vertexIndex = i * step;
+                        var vertexIndex = Math.floor((i / (numParticles - 1)) * (totalVertices - 1));
                         positions[3 * i] = positionAttribute.getX(vertexIndex);
                         positions[3 * i + 1] = positionAttribute.getY(vertexIndex);
                         positions[3 * i + 2] = positionAttribute.getZ(vertexIndex);
@@ -100,6 +172,7 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                     }
                 }
 
+                // Calculate center of mass
                 var centerX = 0, centerY = 0, centerZ = 0;
                 for (var i = 0; i < numParticles; i++) {
                     centerX += positions[3 * i];
@@ -110,48 +183,71 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                 centerY /= numParticles;
                 centerZ /= numParticles;
 
+                // Center all positions around origin
+                for (var i = 0; i < numParticles; i++) {
+                    positions[3 * i] -= centerX;
+                    positions[3 * i + 1] -= centerY;
+                    positions[3 * i + 2] -= centerZ;
+                }
+
+                // Calculate bounding box of centered mesh
                 var minX = Infinity, maxX = -Infinity;
                 var minY = Infinity, maxY = -Infinity;
                 
                 for (var i = 0; i < numParticles; i++) {
-                    var x = positions[3 * i] - centerX;
-                    var y = positions[3 * i + 1] - centerY;
-                    var z = positions[3 * i + 2] - centerZ;
+                    var x = positions[3 * i];
+                    var y = positions[3 * i + 1];
                     
                     minX = Math.min(minX, x);
                     maxX = Math.max(maxX, x);
                     minY = Math.min(minY, y);
                     maxY = Math.max(maxY, y);
-                    
-                    positions[3 * i] = x;
-                    positions[3 * i + 1] = y;
-                    positions[3 * i + 2] = z;
                 }
 
                 var meshWidth = maxX - minX;
                 var meshHeight = maxY - minY;
                 
-                var canvasAspect = width / height;
-                var meshAspect = meshWidth / meshHeight;
-                
+                // Calculate visible world dimensions at z=0
                 var fov = 50 * Math.PI / 180;
                 var distance = 80;
                 var worldHeight = 2 * Math.tan(fov / 2) * distance;
-                var worldWidth = worldHeight * canvasAspect;
+                var worldWidth = worldHeight * (width / height);
                 
-                var scaleX = worldWidth / meshWidth;
-                var scaleY = worldHeight / meshHeight;
-                var baseScale = Math.min(scaleX, scaleY);
+                // Add margins and safety factor for rotation
+                var margin = 0.85; // 15% margin
+                var availableWidth = worldWidth * margin;
+                var availableHeight = worldHeight * margin;
                 
-                // Add safety factor for ±15 degree rotation
-                // cos(15°) ≈ 0.966, so we need additional margin
-                var rotationSafetyFactor = 0.85;
-                var scale = baseScale * rotationSafetyFactor;
+                // Calculate scale to fit within available space
+                var scaleX = availableWidth / meshWidth;
+                var scaleY = availableHeight / meshHeight;
+                var scale = Math.min(scaleX, scaleY);
                 
+                // Apply scaling
                 for (var i = 0; i < numParticles; i++) {
                     positions[3 * i] *= scale;
                     positions[3 * i + 1] *= scale;
                     positions[3 * i + 2] *= scale;
+                }
+                
+                // Recalculate bounds after scaling to ensure perfect centering
+                var scaledMinX = Infinity, scaledMaxX = -Infinity;
+                var scaledMinY = Infinity, scaledMaxY = -Infinity;
+                
+                for (var i = 0; i < numParticles; i++) {
+                    scaledMinX = Math.min(scaledMinX, positions[3 * i]);
+                    scaledMaxX = Math.max(scaledMaxX, positions[3 * i]);
+                    scaledMinY = Math.min(scaledMinY, positions[3 * i + 1]);
+                    scaledMaxY = Math.max(scaledMaxY, positions[3 * i + 1]);
+                }
+                
+                // Center the scaled mesh within the viewport
+                var scaledCenterX = (scaledMinX + scaledMaxX) / 2;
+                var scaledCenterY = (scaledMinY + scaledMaxY) / 2;
+                
+                for (var i = 0; i < numParticles; i++) {
+                    positions[3 * i] -= scaledCenterX;
+                    positions[3 * i + 1] -= scaledCenterY;
                 }
 
                 basePositions = new Float32Array(positions);
@@ -306,8 +402,8 @@ if (document.readyState === 'loading') {
         initParticleIconCard(
             'biotech-canvas',
             { r: 0.451, g: 0.451, b: 0.451 },
-            3000,
-            true
+            2440,
+            false
         );
     });
 } else {
@@ -320,7 +416,23 @@ if (document.readyState === 'loading') {
     initParticleIconCard(
         'biotech-canvas',
         { r: 0.451, g: 0.451, b: 0.451 },
-        3000,
-        true
+        2440,
+        false
     );
 }
+
+// Add cleanup function
+function cleanupParticleRenderers() {
+    if (window.activeRenderers) {
+        window.activeRenderers.forEach(item => {
+            if (item.renderer) {
+                item.renderer.setAnimationLoop(null);
+                item.renderer.dispose();
+            }
+        });
+        window.activeRenderers = [];
+    }
+}
+
+// Make cleanup function available globally
+window.cleanupParticleRenderers = cleanupParticleRenderers;
