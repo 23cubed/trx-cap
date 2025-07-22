@@ -6,6 +6,22 @@ function initScrollingGutters() {
             if (entry.isIntersecting && !entry.target.dataset.scrollTriggerInitialized) {
                 const element = entry.target;
                 const targetWidth = element.dataset.scrollingGutter;
+                const duration = element.dataset.scrollingDuration;
+                
+                let endTrigger;
+                if (duration) {
+                    if (duration.includes('vh')) {
+                        const vhValue = parseFloat(duration);
+                        const pixelValue = (vhValue / 100) * window.innerHeight;
+                        endTrigger = `+=${pixelValue}`;
+                    } else if (duration.includes('%')) {
+                        endTrigger = duration + ' top';
+                    } else {
+                        endTrigger = `+=${duration}`;
+                    }
+                } else {
+                    endTrigger = 'bottom top';
+                }
                 
                 gsap.to(element, {
                     width: targetWidth,
@@ -13,7 +29,7 @@ function initScrollingGutters() {
                     scrollTrigger: {
                         trigger: element,
                         start: 'top bottom',
-                        end: 'bottom top',
+                        end: endTrigger,
                         scrub: true
                     }
                 });
