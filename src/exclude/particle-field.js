@@ -576,6 +576,25 @@ function initParticleField() {
     });
 }
 
+// Add cleanup function for page refreshes
+function cleanupParticleRenderers() {
+    if (window.activeRenderers) {
+        window.activeRenderers.forEach(item => {
+            if (item.renderer) {
+                item.renderer.setAnimationLoop(null);
+                item.renderer.dispose();
+            }
+        });
+        window.activeRenderers = [];
+    }
+}
+
+// Make cleanup function available globally
+window.cleanupParticleRenderers = cleanupParticleRenderers;
+
+// Clean up on page unload/refresh
+window.addEventListener('beforeunload', cleanupParticleRenderers);
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initParticleField);
 } else {
