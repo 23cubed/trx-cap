@@ -1,131 +1,27 @@
-// Position configuration - single source of truth
-var MESH_POSITIONS = {
-    TREX: { x: 100, y: -5, z: 0 },
-    DNA: { x: 40, y: -40, z: 0 }
+// Mesh configuration - single source of truth
+var MESH_CONFIG = {
+    TREX: { 
+        x: 100, y: -5, z: 0,
+        scale: 120,
+        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/t-rex-250k-uniform.glb'
+    },
+    DNA: { 
+        x: 40, y: 0, z: 0,
+        scale: 35,
+        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/DNA-30k-uniform.glb'
+    }
 };
 
-// Global variables to store mesh data for vertex density calculation
-var meshData = {
-    trex: null,
-    dna: null
-};
 
-// Function to calculate and log vertex density recommendations
-function calculateVertexDensityRecommendation() {
-    if (meshData.trex && meshData.dna) {
-        var trexDensity = meshData.trex.vertexCount / meshData.trex.surfaceArea;
-        var dnaDensity = meshData.dna.vertexCount / meshData.dna.surfaceArea;
-        var recommendedDnaVertexCount = Math.round(trexDensity * meshData.dna.surfaceArea);
-        
-        console.log('=== VERTEX DENSITY ANALYSIS ===');
-        console.log('T-Rex vertex density:', trexDensity.toFixed(6), 'vertices per unit area');
-        console.log('DNA current vertex density:', dnaDensity.toFixed(6), 'vertices per unit area');
-        console.log('Recommended DNA vertex count for matching T-Rex density:', recommendedDnaVertexCount);
-        console.log('Current DNA vertex count:', meshData.dna.vertexCount);
-        console.log('Density ratio (T-Rex/DNA):', (trexDensity / dnaDensity).toFixed(2) + 'x');
-        console.log('===============================');
-    }
-}
-
-// Function to calculate surface area of a BufferGeometry (handles both triangles and quads)
-function calculateSurfaceArea(geometry) {
-    var positionAttribute = geometry.getAttribute('position');
-    var indexAttribute = geometry.getIndex();
-    var totalArea = 0;
-    
-    var v0 = new window.THREE.Vector3();
-    var v1 = new window.THREE.Vector3();
-    var v2 = new window.THREE.Vector3();
-    var v3 = new window.THREE.Vector3();
-    var edge1 = new window.THREE.Vector3();
-    var edge2 = new window.THREE.Vector3();
-    var cross = new window.THREE.Vector3();
-    
-    // Helper function to calculate quad area by splitting into two triangles
-    function calculateQuadArea(a, b, c, d) {
-        v0.fromBufferAttribute(positionAttribute, a);
-        v1.fromBufferAttribute(positionAttribute, b);
-        v2.fromBufferAttribute(positionAttribute, c);
-        v3.fromBufferAttribute(positionAttribute, d);
-        
-        // Triangle 1: a, b, c
-        edge1.subVectors(v1, v0);
-        edge2.subVectors(v2, v0);
-        cross.crossVectors(edge1, edge2);
-        var area1 = cross.length() * 0.5;
-        
-        // Triangle 2: a, c, d
-        edge1.subVectors(v2, v0);
-        edge2.subVectors(v3, v0);
-        cross.crossVectors(edge1, edge2);
-        var area2 = cross.length() * 0.5;
-        
-        return area1 + area2;
-    }
-    
-    if (indexAttribute) {
-        // Check if we have quads (count divisible by 4) or triangles (count divisible by 3)
-        if (indexAttribute.count % 4 === 0) {
-            // Quad mesh - every 4 indices form a quad
-            for (var i = 0; i < indexAttribute.count; i += 4) {
-                var a = indexAttribute.getX(i);
-                var b = indexAttribute.getX(i + 1);
-                var c = indexAttribute.getX(i + 2);
-                var d = indexAttribute.getX(i + 3);
-                
-                totalArea += calculateQuadArea(a, b, c, d);
-            }
-        } else {
-            // Triangle mesh - every 3 indices form a triangle
-            for (var i = 0; i < indexAttribute.count; i += 3) {
-                var a = indexAttribute.getX(i);
-                var b = indexAttribute.getX(i + 1);
-                var c = indexAttribute.getX(i + 2);
-                
-                v0.fromBufferAttribute(positionAttribute, a);
-                v1.fromBufferAttribute(positionAttribute, b);
-                v2.fromBufferAttribute(positionAttribute, c);
-                
-                edge1.subVectors(v1, v0);
-                edge2.subVectors(v2, v0);
-                cross.crossVectors(edge1, edge2);
-                
-                totalArea += cross.length() * 0.5;
-            }
-        }
-    } else {
-        // Non-indexed geometry
-        if (positionAttribute.count % 4 === 0) {
-            // Quad mesh - every 4 vertices form a quad
-            for (var i = 0; i < positionAttribute.count; i += 4) {
-                totalArea += calculateQuadArea(i, i + 1, i + 2, i + 3);
-            }
-        } else {
-            // Triangle mesh - every 3 vertices form a triangle
-            for (var i = 0; i < positionAttribute.count; i += 3) {
-                v0.fromBufferAttribute(positionAttribute, i);
-                v1.fromBufferAttribute(positionAttribute, i + 1);
-                v2.fromBufferAttribute(positionAttribute, i + 2);
-                
-                edge1.subVectors(v1, v0);
-                edge2.subVectors(v2, v0);
-                cross.crossVectors(edge1, edge2);
-                
-                totalArea += cross.length() * 0.5;
-            }
-        }
-    }
-    
-    return totalArea;
-}
 
 function initTRex(scene, setParticleSystem) {
+    console.log('Starting T-Rex initialization...');
     var loader = new window.GLTFLoader();
-    var tRexUrl = 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/t-rex-250k-uniform.glb';
 
     loader.load(
-        tRexUrl,
+        MESH_CONFIG.TREX.url,
         function (gltf) {
+            console.log('T-Rex GLTF loaded successfully');
             gltf.scene.updateMatrixWorld(true);
         
             // Find the first Mesh child
@@ -136,21 +32,7 @@ function initTRex(scene, setParticleSystem) {
             if (!mesh) return;
             
             // Scale the mesh geometry before extracting vertices
-            var meshScale = 120;
-            mesh.geometry.scale(meshScale, meshScale, meshScale);
-            
-            // Calculate surface area after scaling
-            var surfaceArea = calculateSurfaceArea(mesh.geometry);
-            var vertexCount = mesh.geometry.getAttribute('position').count;
-            console.log('T-Rex surface area after scaling:', surfaceArea);
-            console.log('T-Rex vertex count:', vertexCount);
-            
-            // Store T-Rex mesh data for density calculation
-            meshData.trex = {
-                surfaceArea: surfaceArea,
-                vertexCount: vertexCount
-            };
-            calculateVertexDensityRecommendation();
+            mesh.geometry.scale(MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale);
             
             // Optionally ensure normals are current for shading
             mesh.geometry.computeVertexNormals();
@@ -215,25 +97,29 @@ function initTRex(scene, setParticleSystem) {
             });
 
             var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-            newParticleSystem.position.set(MESH_POSITIONS.TREX.x, MESH_POSITIONS.TREX.y, MESH_POSITIONS.TREX.z);
+            newParticleSystem.position.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
 
             scene.add(newParticleSystem);
             setParticleSystem(newParticleSystem);
         },
-        undefined,
+        function (progress) {
+            console.log('T-Rex loading progress:', progress);
+        },
         function (error) {
-            console.error('Error loading GLTF model:', error);
+            console.error('Error loading T-Rex GLTF model:', error);
+            console.error('T-Rex URL attempted:', MESH_CONFIG.TREX.url);
         }
     );
 }
 
 function initDNAHelix(scene, setParticleSystem) {
+    console.log('Starting DNA initialization...');
     var loader = new window.GLTFLoader();
-    var dnaUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@9d0d8d4d456323041e25cbfd5d329340e9c12059/src/assets/DNA-2.glb';
 
     loader.load(
-        dnaUrl,
+        MESH_CONFIG.DNA.url,
         function (gltf) {
+            console.log('DNA GLTF loaded successfully');
             gltf.scene.updateMatrixWorld(true);
         
             // Use vertex mapping instead of surface sampling for DNA
@@ -245,14 +131,7 @@ function initDNAHelix(scene, setParticleSystem) {
             if (!mesh) return;
             
             // Scale the mesh geometry before extracting vertices
-            var meshScale = 2;
-            mesh.geometry.scale(meshScale, meshScale, meshScale);
-            
-            // Calculate surface area after scaling
-            var surfaceArea = calculateSurfaceArea(mesh.geometry);
-            var originalVertexCount = mesh.geometry.getAttribute('position').count;
-            console.log('DNA surface area after scaling:', surfaceArea);
-            console.log('DNA original vertex count:', originalVertexCount);
+            mesh.geometry.scale(MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale);
             
             // Optionally ensure normals are current for shading
             mesh.geometry.computeVertexNormals();
@@ -273,12 +152,6 @@ function initDNAHelix(scene, setParticleSystem) {
                 colors[3 * i + 2] = 1;
             }
             
-            // Store DNA mesh data for density calculation (using actual vertex count)
-            meshData.dna = {
-                surfaceArea: surfaceArea,
-                vertexCount: numParticles
-            };
-            calculateVertexDensityRecommendation();
             // Calculate center of mass from positions to center the geometry
             var centerX = 0, centerY = 0, centerZ = 0;
             for (var i = 0; i < numParticles; i++) {
@@ -290,42 +163,50 @@ function initDNAHelix(scene, setParticleSystem) {
             centerY /= numParticles;
             centerZ /= numParticles;
             
-            // Center all positions around origin and apply x-axis rotation
+            // Center all positions around origin
             for (var i = 0; i < numParticles; i++) {
                 var x = positions[3 * i] - centerX;
                 var y = positions[3 * i + 1] - centerY;
                 var z = positions[3 * i + 2] - centerZ;
-            
-           
-        }
+                
+                // Apply centered positions
+                positions[3 * i] = x;
+                positions[3 * i + 1] = y;
+                positions[3 * i + 2] = z;
+            }
 
-        var particleGeometry = new window.THREE.BufferGeometry();
-        particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-        particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
+            var particleGeometry = new window.THREE.BufferGeometry();
+            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
 
-        // Load crisp dot texture via SVG
-        var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-        var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+            // Load crisp dot texture via SVG
+            var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
+            var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
-        // Create PointsMaterial with fixed screen size and vertex colors
-        var particleMaterial = new window.THREE.PointsMaterial({
-            size: 3,
-            sizeAttenuation: false,
-            vertexColors: true,
-            map: texture,
-            transparent: true,
-            blending: window.THREE.AdditiveBlending,
-            depthWrite: false
-        });
+            // Create PointsMaterial with fixed screen size and vertex colors
+            var particleMaterial = new window.THREE.PointsMaterial({
+                size: 3,
+                sizeAttenuation: false,
+                vertexColors: true,
+                map: texture,
+                transparent: true,
+                blending: window.THREE.AdditiveBlending,
+                depthWrite: false
+            });
 
-        var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-        newParticleSystem.position.set(MESH_POSITIONS.DNA.x, MESH_POSITIONS.DNA.y, MESH_POSITIONS.DNA.z);
+            var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+            newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
 
-        setParticleSystem(newParticleSystem);
+            // Don't add to scene - we only want the position data
+            setParticleSystem(newParticleSystem);
         },
-        undefined,
+        function (progress) {
+            console.log('DNA loading progress:', progress);
+        },
         function (error) {
-            console.error('Error loading GLTF model:', error);
+            console.error('Error loading DNA GLTF model:', error);
+            console.error('DNA URL attempted:', MESH_CONFIG.DNA.url);
+            console.error('DNA loading failed - this will prevent morphing to DNA');
         }
     );
 }
@@ -576,12 +457,17 @@ function initParticleField() {
     scene.add(directionalLight);
 
     function morphToTarget(targetPos) {
-        if (!particleSystem || !currentPositions || !targetPos) return;
+        console.log('morphToTarget called - particleSystem:', !!particleSystem, 'currentPositions:', !!currentPositions, 'targetPos:', !!targetPos);
+        if (!particleSystem || !currentPositions || !targetPos) {
+            console.log('morphToTarget early return - missing dependencies');
+            return;
+        }
         
         targetPositions = targetPos;
         isMorphing = true;
         morphProgress = 0;
         morphStartTime = Date.now();
+        console.log('Morph started - target positions length:', targetPositions.length);
     }
 
 
@@ -595,6 +481,8 @@ function initParticleField() {
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
+        console.log('Mouse position:', mouse.x.toFixed(3), mouse.y.toFixed(3));
+        
         // Convert screen coordinates to world coordinates at z=0 plane
         var vector = new window.THREE.Vector3(mouse.x, mouse.y, 0);
         vector.unproject(camera);
@@ -606,9 +494,13 @@ function initParticleField() {
         
         // Trigger morph based on cursor position
         // Left side (mouse.x < 0) = DNA, Right side (mouse.x >= 0) = T-Rex
+        console.log('Morph check - mouse.x:', mouse.x.toFixed(3), 'isShowingTRex:', isShowingTRex, 'dnaPositions available:', !!dnaPositions, 'tRexPositions available:', !!tRexPositions);
+        
         if (mouse.x < 0 && isShowingTRex) {
             // Switch to DNA
             if (dnaPositions) {
+                console.log('Attempting to switch to DNA...');
+                console.log('DNA positions available, morphing to DNA');
                 // If currently morphing, capture current morph positions as new start (without repulsion)
                 if (isMorphing) {
                     var newCurrentPositions = new Float32Array(currentPositions.length);
@@ -635,20 +527,28 @@ function initParticleField() {
                     currentPositions = newCurrentPositions;
                 }
                 startPosition.copy(particleSystem.position);
-                targetPosition.set(MESH_POSITIONS.DNA.x, MESH_POSITIONS.DNA.y, MESH_POSITIONS.DNA.z);
+                targetPosition.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
                 morphToTarget(dnaPositions);
                 isShowingTRex = false;
+            } else {
+                // Only log this once to avoid spam
+                if (!mouse.dnaWarningLogged) {
+                    console.log('Cannot switch to DNA - DNA positions not yet available');
+                    mouse.dnaWarningLogged = true;
+                }
             }
         } else if (mouse.x >= 0 && !isShowingTRex) {
+            console.log('Attempting to switch to T-Rex...');
             // Switch to T-Rex
             if (tRexPositions) {
+                console.log('T-Rex positions available, morphing to T-Rex');
                 // If currently morphing, capture current positions as new start
                 if (isMorphing) {
                     var positionAttribute = particleSystem.geometry.getAttribute('position');
                     currentPositions = new Float32Array(positionAttribute.array);
                 }
                 startPosition.copy(particleSystem.position);
-                targetPosition.set(MESH_POSITIONS.TREX.x, MESH_POSITIONS.TREX.y, MESH_POSITIONS.TREX.z);
+                targetPosition.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
                 morphToTarget(tRexPositions);
                 isShowingTRex = true;
             }
@@ -672,37 +572,40 @@ function initParticleField() {
 
     // Initialize T-Rex and store positions
     initTRex(scene, function(ps) {
+        console.log('T-Rex initialization callback called');
         var positionAttribute = ps.geometry.getAttribute('position');
         tRexPositions = new Float32Array(positionAttribute.array);
         currentPositions = new Float32Array(positionAttribute.array);
         repulsionOffsets = new Float32Array(positionAttribute.array.length);
+        console.log('T-Rex positions set - particle count:', tRexPositions.length / 3);
         
         if (!particleSystem) {
             particleSystem = ps;
             scene.add(particleSystem);
             updateDepthBasedColors();
+            console.log('T-Rex particle system added to scene');
         }
-    });
-    
-    // Initialize DNA and store positions
-    initDNAHelix(scene, function(ps) {
-        var positionAttribute = ps.geometry.getAttribute('position');
         
-        // Ensure DNA has same number of particles as T-Rex
-        if (tRexPositions) {
+        // Initialize DNA after T-Rex is complete
+        initDNAHelix(scene, function(dnaPs) {
+            console.log('DNA initialization callback called');
+            var dnaPositionAttribute = dnaPs.geometry.getAttribute('position');
+            
             var tRexParticleCount = tRexPositions.length / 3;
-            var dnaParticleCount = positionAttribute.count;
+            var dnaParticleCount = dnaPositionAttribute.count;
+            console.log('DNA particle mapping - T-Rex count:', tRexParticleCount, 'DNA count:', dnaParticleCount);
             
             dnaPositions = new Float32Array(tRexPositions.length);
             
             // Map DNA positions to match T-Rex particle count
             for (var i = 0; i < tRexParticleCount; i++) {
                 var dnaIndex = i % dnaParticleCount;
-                dnaPositions[3 * i] = positionAttribute.getX(dnaIndex);
-                dnaPositions[3 * i + 1] = positionAttribute.getY(dnaIndex);
-                dnaPositions[3 * i + 2] = positionAttribute.getZ(dnaIndex);
+                dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
+                dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
+                dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
             }
-        }
+            console.log('DNA positions set - final count:', dnaPositions.length / 3);
+        });
     });
 }
 

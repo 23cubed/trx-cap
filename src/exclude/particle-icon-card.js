@@ -401,13 +401,13 @@ if (document.readyState === 'loading') {
     initParticleIconCard(
         'healthcare-tech-canvas',
         { r: 0.451, g: 0.451, b: 0.451 },
-        3000,
+        null,
         false
     );
     initParticleIconCard(
         'biotech-canvas',
         { r: 0.451, g: 0.451, b: 0.451 },
         2440,
-        false
+        null
     );
 }
