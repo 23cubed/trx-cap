@@ -3,12 +3,12 @@ var MESH_CONFIG = {
     TREX: { 
         x: 170, y: -10, z: 0,
         scale: 155,
-        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/t-rex-250k-uniform.glb'
+        url: '@/assets/t-rex-250k-uniform.glb'
     },
     DNA: { 
         x: 40, y: 0, z: 0,
         scale: 45,
-        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/DNA-20k-uniform.glb'
+        url: '@/assets/DNA-20k-uniform.glb'
     }
 };
 
@@ -165,7 +165,7 @@ function initDNAHelix(scene, setParticleSystem) {
 }
 
     // Main particle field setup and animation
-function initParticleField() {
+function initParticleHeroMeshMorph() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) {
         return;
@@ -545,8 +545,4 @@ function initParticleField() {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initParticleField);
-} else {
-    initParticleField();
-}
+export { initParticleHeroMeshMorph };
