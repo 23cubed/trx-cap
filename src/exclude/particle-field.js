@@ -1,43 +1,62 @@
 // Mesh configuration - single source of truth
 var MESH_CONFIG = {
     TREX: { 
-        x: 100, y: -5, z: 0,
-        scale: 120,
+        x: 170, y: -10, z: 0,
+        scale: 155,
         url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/t-rex-250k-uniform.glb'
     },
     DNA: { 
         x: 40, y: 0, z: 0,
-        scale: 35,
-        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/DNA-30k-uniform.glb'
+        scale: 45,
+        url: 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/DNA-20k-uniform.glb'
     }
 };
 
+// Repulsion effect configuration
+var REPULSION_CONFIG = {
+    screenRadius: 0.5,
+    strength: 0.2,
+    easeSpeed: 0.08
+};
 
+// Morph animation configuration
+var MORPH_CONFIG = {
+    duration: 2, // Duration to scrub from DNA to T-Rex (or vice versa)
+    interruptionEase: "power1.inOut", // Smoother ease when interrupting existing animations
+    maxInterruptionScale: 6, // Maximum scale factor for early interruptions
+    dissolveDistance: 8 // Maximum distance particles randomly scatter during transition
+};
 
+// Rotation configuration
+var ROTATION_CONFIG = {
+    leftRotation: -80 * Math.PI / 180,   // -80 degrees (left edge)
+    centerRotation: -15 * Math.PI / 180,   // -20 degrees (center)
+    rightRotation: -8 * Math.PI / 180,   // -10 degrees (right edge)
+    easeSpeed: 0.05
+};
+
+// Load T-Rex GLTF model and convert to particle system
 function initTRex(scene, setParticleSystem) {
-    console.log('Starting T-Rex initialization...');
     var loader = new window.GLTFLoader();
 
     loader.load(
         MESH_CONFIG.TREX.url,
         function (gltf) {
-            console.log('T-Rex GLTF loaded successfully');
             gltf.scene.updateMatrixWorld(true);
         
-            // Find the first Mesh child
             var mesh = null;
             gltf.scene.traverse(function(child) {
                 if (child.isMesh) mesh = child;
             });
             if (!mesh) return;
             
-            // Scale the mesh geometry before extracting vertices
+            // Transform mesh geometry
             mesh.geometry.scale(MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale);
-            
-            // Optionally ensure normals are current for shading
+            mesh.geometry.rotateY(-Math.PI / 2);
+            mesh.geometry.center();
             mesh.geometry.computeVertexNormals();
             
-            // Use vertex mapping - extract all vertices from the mesh
+            // Convert vertices to particle data
             var positionAttribute = mesh.geometry.getAttribute('position');
             var numParticles = positionAttribute.count;
             var positions = new Float32Array(numParticles * 3);
@@ -47,45 +66,19 @@ function initTRex(scene, setParticleSystem) {
                 positions[3 * i]     = positionAttribute.getX(i);
                 positions[3 * i + 1] = positionAttribute.getY(i);
                 positions[3 * i + 2] = positionAttribute.getZ(i);
-                // white color
                 colors[3 * i]     = 1;
                 colors[3 * i + 1] = 1;
                 colors[3 * i + 2] = 1;
             }
-            // Calculate center of mass from positions to center the geometry
-            var centerX = 0, centerY = 0, centerZ = 0;
-            for (var i = 0; i < numParticles; i++) {
-                centerX += positions[3 * i];
-                centerY += positions[3 * i + 1];
-                centerZ += positions[3 * i + 2];
-            }
-            centerX /= numParticles;
-            centerY /= numParticles;
-            centerZ /= numParticles;
-            
-            // Center all positions around origin and apply y-axis rotation (-90 degrees)
-            for (var i = 0; i < numParticles; i++) {
-                var x = positions[3 * i] - centerX;
-                var y = positions[3 * i + 1] - centerY;
-                var z = positions[3 * i + 2] - centerZ;
-                
-                // Apply +90 degree rotation around y-axis: (x, y, z) -> (-z, y, x)
-                positions[3 * i] = -z;
-                positions[3 * i + 1] = y;
-                positions[3 * i + 2] = x;
-            }
-            
-
 
             var particleGeometry = new window.THREE.BufferGeometry();
             particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
             particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
 
-            // Load crisp dot texture via SVG
+            // Create particle material with dot texture
             var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
             var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
-            // Create PointsMaterial with fixed screen size and vertex colors
             var particleMaterial = new window.THREE.PointsMaterial({
                 size: 1.5,
                 sizeAttenuation: false,
@@ -103,40 +96,35 @@ function initTRex(scene, setParticleSystem) {
             setParticleSystem(newParticleSystem);
         },
         function (progress) {
-            console.log('T-Rex loading progress:', progress);
+            // ... existing code ...
         },
         function (error) {
-            console.error('Error loading T-Rex GLTF model:', error);
-            console.error('T-Rex URL attempted:', MESH_CONFIG.TREX.url);
+            // ... existing code ...
         }
     );
 }
 
+// Load DNA helix GLTF model and convert to particle system
 function initDNAHelix(scene, setParticleSystem) {
-    console.log('Starting DNA initialization...');
     var loader = new window.GLTFLoader();
 
     loader.load(
         MESH_CONFIG.DNA.url,
         function (gltf) {
-            console.log('DNA GLTF loaded successfully');
             gltf.scene.updateMatrixWorld(true);
         
-            // Use vertex mapping instead of surface sampling for DNA
-            // Find the first Mesh child
             var mesh = null;
             gltf.scene.traverse(function(child) {
                 if (child.isMesh) mesh = child;
             });
             if (!mesh) return;
             
-            // Scale the mesh geometry before extracting vertices
+            // Transform mesh geometry
             mesh.geometry.scale(MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale);
+            mesh.geometry.center();
+            mesh.geometry.computeVertexNormals(); 
             
-            // Optionally ensure normals are current for shading
-            mesh.geometry.computeVertexNormals();
-            
-            // Use vertex mapping instead of surface sampling for DNA
+            // Convert vertices to particle data
             var positionAttribute = mesh.geometry.getAttribute('position');
             var numParticles = positionAttribute.count;
             var positions = new Float32Array(numParticles * 3);
@@ -146,44 +134,18 @@ function initDNAHelix(scene, setParticleSystem) {
                 positions[3 * i]     = positionAttribute.getX(i);
                 positions[3 * i + 1] = positionAttribute.getY(i);
                 positions[3 * i + 2] = positionAttribute.getZ(i);
-                // white color
                 colors[3 * i]     = 1;
                 colors[3 * i + 1] = 1;
                 colors[3 * i + 2] = 1;
-            }
-            
-            // Calculate center of mass from positions to center the geometry
-            var centerX = 0, centerY = 0, centerZ = 0;
-            for (var i = 0; i < numParticles; i++) {
-                centerX += positions[3 * i];
-                centerY += positions[3 * i + 1];
-                centerZ += positions[3 * i + 2];
-            }
-            centerX /= numParticles;
-            centerY /= numParticles;
-            centerZ /= numParticles;
-            
-            // Center all positions around origin
-            for (var i = 0; i < numParticles; i++) {
-                var x = positions[3 * i] - centerX;
-                var y = positions[3 * i + 1] - centerY;
-                var z = positions[3 * i + 2] - centerZ;
-                
-                // Apply centered positions
-                positions[3 * i] = x;
-                positions[3 * i + 1] = y;
-                positions[3 * i + 2] = z;
             }
 
             var particleGeometry = new window.THREE.BufferGeometry();
             particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
             particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
 
-            // Load crisp dot texture via SVG
             var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
             var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
-            // Create PointsMaterial with fixed screen size and vertex colors
             var particleMaterial = new window.THREE.PointsMaterial({
                 size: 3,
                 sizeAttenuation: false,
@@ -197,30 +159,22 @@ function initDNAHelix(scene, setParticleSystem) {
             var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
             newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
 
-            // Don't add to scene - we only want the position data
             setParticleSystem(newParticleSystem);
-        },
-        function (progress) {
-            console.log('DNA loading progress:', progress);
-        },
-        function (error) {
-            console.error('Error loading DNA GLTF model:', error);
-            console.error('DNA URL attempted:', MESH_CONFIG.DNA.url);
-            console.error('DNA loading failed - this will prevent morphing to DNA');
         }
     );
 }
 
+    // Main particle field setup and animation
 function initParticleField() {
     var canvas = document.querySelector('#texture-canvas');
     if (!canvas) {
-        console.error('Canvas id="texture-canvas" not found.');
         return;
     }
 
-    var width = canvas.offsetWidth,
-        height = canvas.offsetHeight;
+    var width = window.innerWidth,
+        height = window.innerHeight;
 
+    // Setup Three.js renderer and scene
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
@@ -230,381 +184,363 @@ function initParticleField() {
     var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
     camera.position.set(0, 0, 80);
 
+    // State variables
     var particleSystem = null;
     var tRexPositions = null;
     var dnaPositions = null;
-    var currentPositions = null;
-    var targetPositions = null;
+    var dissolveDisplacements = null;
+    var morphTimeline = null;
+    var morphProgress = { value: 1 };
+    var targetProgress = 1;
     var isShowingTRex = true;
-    var isMorphing = false;
-    var morphProgress = 0;
-    var morphDuration = 2000; // 2 seconds
-    var morphStartTime = 0;
-    var startPosition = new window.THREE.Vector3();
-    var targetPosition = new window.THREE.Vector3();
+    var morphTriggerCount = 0;
+    var lastLogTime = 0;
     
-    // Mouse repulsion variables
     var mouse = new window.THREE.Vector2();
     var mouseWorldPos = new window.THREE.Vector3();
-    var repulsionRadius = 10;
-    var repulsionStrength = 0.4;
-    var repulsionOffsets = null; // Store current repulsion offsets for each particle
+    var repulsionOffsets = null;
     
-    // Rotation smoothing variables
     var currentRotation = 0;
-    var rotationEaseSpeed = 0.05; // How fast rotation responds to mouse changes
-    
-    // Depth-based opacity settings
-    var depthRange = 20; // Z-distance range for opacity falloff
-    var minOpacity = 0.5; // Minimum opacity for furthest particles
-    var maxOpacity = 0.5; // Maxiamum opacity for nearest particles
+    var depthRange = 20;
+    var minOpacity = 0.5;
+    var maxOpacity = 0.5;
 
+    // Generate random displacement vectors for dissolve effect
+    function generateDissolveDisplacements(particleCount) {
+        var displacements = new Float32Array(particleCount * 3);
+        
+        for (var i = 0; i < particleCount; i++) {
+            var theta = Math.random() * 2 * Math.PI;
+            var phi = Math.random() * Math.PI;
+            var distance = Math.random() * MORPH_CONFIG.dissolveDistance;
+            
+            displacements[3 * i] = distance * Math.sin(phi) * Math.cos(theta);
+            displacements[3 * i + 1] = distance * Math.sin(phi) * Math.sin(theta);
+            displacements[3 * i + 2] = distance * Math.cos(phi);
+        }
+        
+        return displacements;
+    }
+
+    // Update particle opacity based on depth
     function updateDepthBasedColors() {
         if (!particleSystem) return;
         
         var positionAttribute = particleSystem.geometry.getAttribute('position');
         var colorAttribute = particleSystem.geometry.getAttribute('color');
         
-        // Find the center z-position of all particles
         var avgZ = 0;
         for (var i = 0; i < positionAttribute.count; i++) {
             avgZ += positionAttribute.getZ(i);
         }
         avgZ /= positionAttribute.count;
         
-        // Use fixed depth range centered around particle positions
-        var nearZ = avgZ + depthRange / 2;  // Closer to camera
-        var farZ = avgZ - depthRange / 2;   // Further from camera
+        var nearZ = avgZ + depthRange / 2;
+        var farZ = avgZ - depthRange / 2;
         
-        // Update colors based on z-position
         for (var i = 0; i < positionAttribute.count; i++) {
             var z = positionAttribute.getZ(i);
-            
-            // Normalize z to 0-1 range based on fixed depth range
-            // Closer to camera (higher z) = higher value
             var normalizedZ = Math.max(0, Math.min(1, (z - farZ) / (nearZ - farZ)));
-            
-            // Calculate opacity (closer particles are brighter)
             var opacity = minOpacity + (maxOpacity - minOpacity) * normalizedZ;
-            
-            // Apply opacity to RGB values (for additive blending, darker = more transparent)
             colorAttribute.setXYZ(i, opacity, opacity, opacity);
         }
         
         colorAttribute.needsUpdate = true;
     }
 
-    // Start a render loop for crisp particles
+    // Animation loop
     renderer.setAnimationLoop(function() {
-        // Handle canvas resizing
         if (resizeRendererToDisplaySize(renderer)) {
-            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
         }
-        if (particleSystem && isMorphing) {
-            var elapsed = Date.now() - morphStartTime;
-            morphProgress = Math.min(elapsed / morphDuration, 1);
-            
-            // Use easing function for smooth animation
-            var easedProgress = 0.5 - 0.5 * Math.cos(morphProgress * Math.PI);
-            
-            // Animate particle positions
+        
+        // Handle morphing between T-Rex and DNA with dissolve effect
+        if (particleSystem && tRexPositions && dnaPositions && dissolveDisplacements) {
             var positionAttribute = particleSystem.geometry.getAttribute('position');
+            var progress = morphProgress.value;
+            var dissolveIntensity = Math.sin(progress * Math.PI);
+            
             for (var i = 0; i < positionAttribute.count; i++) {
-                var startX = currentPositions[3 * i];
-                var startY = currentPositions[3 * i + 1];
-                var startZ = currentPositions[3 * i + 2];
+                var dnaX = dnaPositions[3 * i];
+                var dnaY = dnaPositions[3 * i + 1];
+                var dnaZ = dnaPositions[3 * i + 2];
                 
-                var endX = targetPositions[3 * i];
-                var endY = targetPositions[3 * i + 1];
-                var endZ = targetPositions[3 * i + 2];
+                var tRexX = tRexPositions[3 * i];
+                var tRexY = tRexPositions[3 * i + 1];
+                var tRexZ = tRexPositions[3 * i + 2];
+                
+                var baseX = dnaX + (tRexX - dnaX) * progress;
+                var baseY = dnaY + (tRexY - dnaY) * progress;
+                var baseZ = dnaZ + (tRexZ - dnaZ) * progress;
+                
+                var displaceX = dissolveDisplacements[3 * i] * dissolveIntensity;
+                var displaceY = dissolveDisplacements[3 * i + 1] * dissolveIntensity;
+                var displaceZ = dissolveDisplacements[3 * i + 2] * dissolveIntensity;
                 
                 positionAttribute.setXYZ(i,
-                    startX + (endX - startX) * easedProgress,
-                    startY + (endY - startY) * easedProgress,
-                    startZ + (endZ - startZ) * easedProgress
+                    baseX + displaceX,
+                    baseY + displaceY,
+                    baseZ + displaceZ
                 );
             }
             positionAttribute.needsUpdate = true;
             
-            // Animate particle system position
-            particleSystem.position.lerpVectors(startPosition, targetPosition, easedProgress);
+            var dnaWorldPos = new window.THREE.Vector3(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
+            var tRexWorldPos = new window.THREE.Vector3(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
+            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, progress);
             
-            if (morphProgress >= 1) {
-                isMorphing = false;
-                currentPositions = targetPositions;
-                updateDepthBasedColors();
-            }
-        }
-        
-        // Apply smooth magnetic repulsion effect
-        if (particleSystem && currentPositions) {
-            if (!repulsionOffsets) {
-                repulsionOffsets = new Float32Array(currentPositions.length);
-            }
-            
-            var positionAttribute = particleSystem.geometry.getAttribute('position');
-            var easeSpeed = 0.08; // How fast particles respond to repulsion
-            
-            // Transform mouse world position to particle system's local coordinate space
-            // Account for both position and rotation
-            var relativeMouseX = mouseWorldPos.x - particleSystem.position.x;
-            var relativeMouseY = mouseWorldPos.y - particleSystem.position.y;
-            
-            // Apply inverse Y-axis rotation to get mouse position in particle system's local space
-            // Y-axis rotation affects X and Z coordinates, but since we're working mostly in X-Y plane (Z≈0):
-            var actualRotation = particleSystem.rotation.y;
-            var cosRotation = Math.cos(-actualRotation);
-            var sinRotation = Math.sin(-actualRotation);
-            
-            // For Y-axis rotation: newX = x*cos(θ) + z*sin(θ), but z≈0, so newX ≈ x*cos(θ)
-            // Approximate inverse transformation (ignoring z): localX = worldX / cos(θ)
-            var localMouseX = cosRotation !== 0 ? relativeMouseX / cosRotation : relativeMouseX;
-            var localMouseY = relativeMouseY; // Y coordinate is unaffected by Y-axis rotation
-            
-            for (var i = 0; i < positionAttribute.count; i++) {
-                // Get base position (current morph state without repulsion)
-                var baseX, baseY, baseZ;
-                if (isMorphing) {
-                    // During morphing, calculate the pure morph position without repulsion
-                    var startX = currentPositions[3 * i];
-                    var startY = currentPositions[3 * i + 1];
-                    var startZ = currentPositions[3 * i + 2];
-                    
-                    var endX = targetPositions[3 * i];
-                    var endY = targetPositions[3 * i + 1];
-                    var endZ = targetPositions[3 * i + 2];
-                    
-                    var elapsed = Date.now() - morphStartTime;
-                    var progress = Math.min(elapsed / morphDuration, 1);
-                    var easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-                    
-                    baseX = startX + (endX - startX) * easedProgress;
-                    baseY = startY + (endY - startY) * easedProgress;
-                    baseZ = startZ + (endZ - startZ) * easedProgress;
-                } else {
-                    // Use stored current positions
-                    baseX = currentPositions[3 * i];
-                    baseY = currentPositions[3 * i + 1];
-                    baseZ = currentPositions[3 * i + 2];
-                }
-                
-                // Calculate distance from particle to mouse (using local coordinate space)
-                var dx = baseX - localMouseX;
-                var dy = baseY - localMouseY;
-                var distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Calculate target repulsion offset
-                var targetOffsetX = 0;
-                var targetOffsetY = 0;
-                
-                if (distance < repulsionRadius && distance > 0.1) {
-                    // Smooth falloff with easing
-                    var influence = Math.pow(1 - distance / repulsionRadius, 2);
-                    var repulsionForce = influence * repulsionStrength;
-                    var normalizedDx = dx / distance;
-                    var normalizedDy = dy / distance;
-                    
-                    targetOffsetX = normalizedDx * repulsionForce;
-                    targetOffsetY = normalizedDy * repulsionForce;
-                }
-                
-                // Smoothly interpolate current offset toward target
-                repulsionOffsets[3 * i] += (targetOffsetX - repulsionOffsets[3 * i]) * easeSpeed;
-                repulsionOffsets[3 * i + 1] += (targetOffsetY - repulsionOffsets[3 * i + 1]) * easeSpeed;
-                
-                // Apply the smoothed offset to the base position
-                var finalX = baseX + repulsionOffsets[3 * i];
-                var finalY = baseY + repulsionOffsets[3 * i + 1];
-                
-                // Only update position if we're not currently morphing, or add offset to morph
-                if (isMorphing) {
-                    // During morphing, the morph animation handles base position, we just add offset
-                    positionAttribute.setXYZ(i, finalX, finalY, baseZ);
-                } else {
-                    // When not morphing, set the final position with repulsion
-                    positionAttribute.setXYZ(i, finalX, finalY, baseZ);
-                }
-            }
-            positionAttribute.needsUpdate = true;
-            
-            // Update depth-based colors after position changes
             updateDepthBasedColors();
         }
         
+
+        
+        // Apply mouse repulsion effect
+        if (particleSystem && tRexPositions && dnaPositions && dissolveDisplacements) {
+            if (!repulsionOffsets) {
+                repulsionOffsets = new Float32Array(tRexPositions.length);
+            }
+            
+            var positionAttribute = particleSystem.geometry.getAttribute('position');
+            var progress = morphProgress.value;
+            var dissolveIntensity = Math.sin(progress * Math.PI);
+            
+            for (var i = 0; i < positionAttribute.count; i++) {
+                var dnaX = dnaPositions[3 * i];
+                var dnaY = dnaPositions[3 * i + 1];
+                var dnaZ = dnaPositions[3 * i + 2];
+                
+                var tRexX = tRexPositions[3 * i];
+                var tRexY = tRexPositions[3 * i + 1];
+                var tRexZ = tRexPositions[3 * i + 2];
+                
+                var baseX = dnaX + (tRexX - dnaX) * progress + dissolveDisplacements[3 * i] * dissolveIntensity;
+                var baseY = dnaY + (tRexY - dnaY) * progress + dissolveDisplacements[3 * i + 1] * dissolveIntensity;
+                var baseZ = dnaZ + (tRexZ - dnaZ) * progress + dissolveDisplacements[3 * i + 2] * dissolveIntensity;
+                
+                var particleWorldPos = new window.THREE.Vector3(baseX, baseY, baseZ);
+                particleWorldPos.applyMatrix4(particleSystem.matrixWorld);
+                var particleScreenPos = particleWorldPos.project(camera);
+                
+                var screenDx = particleScreenPos.x - mouse.x;
+                var screenDy = particleScreenPos.y - mouse.y;
+                var screenDistance = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
+                
+                var targetOffsetX = 0;
+                var targetOffsetY = 0;
+                
+                if (screenDistance < REPULSION_CONFIG.screenRadius) {
+                    var influence = Math.pow(1 - screenDistance / REPULSION_CONFIG.screenRadius, 2);
+                    var repulsionForce = influence * REPULSION_CONFIG.strength;
+                    
+                    var normalizedDx, normalizedDy;
+                    
+                    if (screenDistance < 0.001) {
+                        var angle = Math.atan2(particleScreenPos.y, particleScreenPos.x) + (Math.random() - 0.5) * 0.5;
+                        normalizedDx = Math.cos(angle);
+                        normalizedDy = Math.sin(angle);
+                        repulsionForce = REPULSION_CONFIG.strength * 2;
+                    } else {
+                        normalizedDx = screenDx / screenDistance;
+                        normalizedDy = screenDy / screenDistance;
+                    }
+                    
+                    targetOffsetX = normalizedDx * repulsionForce * 5;
+                    targetOffsetY = normalizedDy * repulsionForce * 5;
+                }
+                
+                repulsionOffsets[3 * i] += (targetOffsetX - repulsionOffsets[3 * i]) * REPULSION_CONFIG.easeSpeed;
+                repulsionOffsets[3 * i + 1] += (targetOffsetY - repulsionOffsets[3 * i + 1]) * REPULSION_CONFIG.easeSpeed;
+                
+                var finalX = baseX + repulsionOffsets[3 * i];
+                var finalY = baseY + repulsionOffsets[3 * i + 1];
+                
+                positionAttribute.setXYZ(i, finalX, finalY, baseZ);
+            }
+            positionAttribute.needsUpdate = true;
+            updateDepthBasedColors();
+        }
+        
+        // Smooth rotation based on mouse position
         if (particleSystem) {
-            // Smooth rotation based on mouse position
-            // Left side (-1) = -30 degrees, Right side (+1) = +15 degrees
-            var leftRotation = -30 * Math.PI / 180; // -30 degrees in radians
-            var rightRotation = 15 * Math.PI / 180; // +15 degrees in radians
+            var targetRotation;
             
-            // Interpolate between rotations based on mouse.x (-1 to +1)
-            // Convert mouse.x from [-1, 1] to [0, 1] for interpolation
-            var t = (mouse.x + 1) / 2;
-            var targetRotation = leftRotation + (rightRotation - leftRotation) * t;
+            if (mouse.x < 0) {
+                var t = (mouse.x + 1) / 1;
+                targetRotation = ROTATION_CONFIG.leftRotation + (ROTATION_CONFIG.centerRotation - ROTATION_CONFIG.leftRotation) * t;
+            } else {
+                var t = mouse.x / 1;
+                targetRotation = ROTATION_CONFIG.centerRotation + (ROTATION_CONFIG.rightRotation - ROTATION_CONFIG.centerRotation) * t;
+            }
             
-            // Smoothly interpolate current rotation toward target rotation
-            currentRotation += (targetRotation - currentRotation) * rotationEaseSpeed;
+            currentRotation += (targetRotation - currentRotation) * ROTATION_CONFIG.easeSpeed;
             particleSystem.rotation.y = currentRotation;
         }
+        
         renderer.render(scene, camera);
     });
 
+    // Setup lighting
     var ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
     var directionalLight = new window.THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    function morphToTarget(targetPos) {
-        console.log('morphToTarget called - particleSystem:', !!particleSystem, 'currentPositions:', !!currentPositions, 'targetPos:', !!targetPos);
-        if (!particleSystem || !currentPositions || !targetPos) {
-            console.log('morphToTarget early return - missing dependencies');
-            return;
+    // Initialize the morph timeline
+    function initMorphTimeline() {
+        if (morphTimeline) return;
+        
+        morphTimeline = window.gsap.timeline({ paused: true });
+        morphTimeline.addLabel("DNA", 0);
+        morphTimeline.addLabel("TREX", MORPH_CONFIG.duration);
+    }
+    
+    // Smoothly tween to target progress
+    function morphToProgress(targetValue) {
+        if (!tRexPositions || !dnaPositions || !dissolveDisplacements) return;
+        
+        var existingTweens = window.gsap.getTweensOf(morphProgress);
+        var isInterruption = existingTweens.length > 0;
+        var interruptionProgress = 0;
+        var scaleFactor = 1.0;
+        
+        var currentProgress = morphProgress.value;
+        var distance = Math.abs(targetValue - currentProgress);
+        var baseDuration = distance * MORPH_CONFIG.duration;
+        
+        if (isInterruption && existingTweens.length > 0) {
+            var currentTween = existingTweens[0];
+            interruptionProgress = currentTween.progress();
+            
+            if (distance >= 0.6) {
+                scaleFactor = 1.0;
+            } else if (distance > 0.01) {
+                var normalizedDistance = distance / 0.6;
+                scaleFactor = 1 + (MORPH_CONFIG.maxInterruptionScale - 1) / (10 * normalizedDistance + 0.1);
+                scaleFactor = Math.min(scaleFactor, MORPH_CONFIG.maxInterruptionScale);
+            } else {
+                scaleFactor = MORPH_CONFIG.maxInterruptionScale;
+            }
         }
         
-        targetPositions = targetPos;
-        isMorphing = true;
-        morphProgress = 0;
-        morphStartTime = Date.now();
-        console.log('Morph started - target positions length:', targetPositions.length);
+        if (isInterruption) {
+            window.gsap.killTweensOf(morphProgress);
+        }
+        
+        var duration = baseDuration * scaleFactor;
+        var easeType = isInterruption ? MORPH_CONFIG.interruptionEase : "power3.inOut";
+        
+        window.gsap.to(morphProgress, {
+            value: targetValue,
+            duration: duration,
+            ease: easeType
+        });
     }
 
-
-
-    // Mouse tracking for repulsion effect and morph triggering
+    // Mouse position tracking and morph triggering
     function updateMousePosition(event) {
-        // Get canvas rectangle to properly map coordinates
         var rect = canvas.getBoundingClientRect();
         
-        // Use canvas dimensions to match camera aspect ratio
+        var prevMouseX = mouse.x;
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
-        console.log('Mouse position:', mouse.x.toFixed(3), mouse.y.toFixed(3));
-        
-        // Convert screen coordinates to world coordinates at z=0 plane
         var vector = new window.THREE.Vector3(mouse.x, mouse.y, 0);
         vector.unproject(camera);
         
-        // Since camera is at z=80 and particles are around z=0, project onto z=0 plane
         var dir = vector.sub(camera.position).normalize();
         var distance = -camera.position.z / dir.z;
         mouseWorldPos.copy(camera.position).add(dir.multiplyScalar(distance));
         
-        // Trigger morph based on cursor position
-        // Left side (mouse.x < 0) = DNA, Right side (mouse.x >= 0) = T-Rex
-        console.log('Morph check - mouse.x:', mouse.x.toFixed(3), 'isShowingTRex:', isShowingTRex, 'dnaPositions available:', !!dnaPositions, 'tRexPositions available:', !!tRexPositions);
+        var actuallyShowingTRex = morphProgress.value > 0.5;
+        var desiredTarget = mouse.x < 0 ? 0 : 1;
         
-        if (mouse.x < 0 && isShowingTRex) {
-            // Switch to DNA
-            if (dnaPositions) {
-                console.log('Attempting to switch to DNA...');
-                console.log('DNA positions available, morphing to DNA');
-                // If currently morphing, capture current morph positions as new start (without repulsion)
-                if (isMorphing) {
-                    var newCurrentPositions = new Float32Array(currentPositions.length);
-                    
-                    // Calculate pure morph positions without repulsion offsets
-                    var elapsed = Date.now() - morphStartTime;
-                    var progress = Math.min(elapsed / morphDuration, 1);
-                    var easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-                    
-                    for (var j = 0; j < currentPositions.length / 3; j++) {
-                        var startX = currentPositions[3 * j];
-                        var startY = currentPositions[3 * j + 1];
-                        var startZ = currentPositions[3 * j + 2];
-                        
-                        var endX = targetPositions[3 * j];
-                        var endY = targetPositions[3 * j + 1];
-                        var endZ = targetPositions[3 * j + 2];
-                        
-                        newCurrentPositions[3 * j] = startX + (endX - startX) * easedProgress;
-                        newCurrentPositions[3 * j + 1] = startY + (endY - startY) * easedProgress;
-                        newCurrentPositions[3 * j + 2] = startZ + (endZ - startZ) * easedProgress;
-                    }
-                    
-                    currentPositions = newCurrentPositions;
-                }
-                startPosition.copy(particleSystem.position);
-                targetPosition.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
-                morphToTarget(dnaPositions);
-                isShowingTRex = false;
+        if (desiredTarget !== targetProgress && tRexPositions && dnaPositions && dissolveDisplacements) {
+            var oldTarget = targetProgress;
+            var currentProgress = morphProgress.value;
+            targetProgress = desiredTarget;
+            morphTriggerCount++;
+            
+            var existingTweens = window.gsap.getTweensOf(morphProgress);
+            var isInterruption = existingTweens.length > 0;
+            var scaleFactor = 1.0;
+            var distance = Math.abs(targetProgress - currentProgress);
+            
+            if (isInterruption) {
+                scaleFactor = 1 + (MORPH_CONFIG.maxInterruptionScale - 1) / (17.5 * distance + 1);
+            }
+            
+            var currentTargetProgress, newTargetRemaining;
+            
+            if (oldTarget === 0) {
+                currentTargetProgress = 1 - currentProgress;
             } else {
-                // Only log this once to avoid spam
-                if (!mouse.dnaWarningLogged) {
-                    console.log('Cannot switch to DNA - DNA positions not yet available');
-                    mouse.dnaWarningLogged = true;
-                }
+                currentTargetProgress = currentProgress;
             }
-        } else if (mouse.x >= 0 && !isShowingTRex) {
-            console.log('Attempting to switch to T-Rex...');
-            // Switch to T-Rex
-            if (tRexPositions) {
-                console.log('T-Rex positions available, morphing to T-Rex');
-                // If currently morphing, capture current positions as new start
-                if (isMorphing) {
-                    var positionAttribute = particleSystem.geometry.getAttribute('position');
-                    currentPositions = new Float32Array(positionAttribute.array);
-                }
-                startPosition.copy(particleSystem.position);
-                targetPosition.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
-                morphToTarget(tRexPositions);
-                isShowingTRex = true;
+            
+            if (targetProgress === 0) {
+                newTargetRemaining = currentProgress;
+            } else {
+                newTargetRemaining = 1 - currentProgress;
             }
+            
+            morphToProgress(targetProgress);
         }
+        
+        isShowingTRex = actuallyShowingTRex;
     }
     
-    // Handle window resize using Three.js standard approach
     function resizeRendererToDisplaySize(renderer) {
         var canvas = renderer.domElement;
-        var width = canvas.clientWidth;
-        var height = canvas.clientHeight;
+        var width = window.innerWidth;
+        var height = window.innerHeight;
         var needResize = canvas.width !== width || canvas.height !== height;
         if (needResize) {
-            renderer.setSize(width, height, false);
+            renderer.setSize(width, height);
         }
         return needResize;
     }
     
-    // Add event listeners
+    function handleWindowResize() {
+        if (resizeRendererToDisplaySize(renderer)) {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+    }
+    
     window.addEventListener('mousemove', updateMousePosition);
+    window.addEventListener('resize', handleWindowResize);
 
-    // Initialize T-Rex and store positions
+    // Initialize particle systems
     initTRex(scene, function(ps) {
-        console.log('T-Rex initialization callback called');
         var positionAttribute = ps.geometry.getAttribute('position');
         tRexPositions = new Float32Array(positionAttribute.array);
-        currentPositions = new Float32Array(positionAttribute.array);
         repulsionOffsets = new Float32Array(positionAttribute.array.length);
-        console.log('T-Rex positions set - particle count:', tRexPositions.length / 3);
         
         if (!particleSystem) {
             particleSystem = ps;
             scene.add(particleSystem);
             updateDepthBasedColors();
-            console.log('T-Rex particle system added to scene');
         }
         
-        // Initialize DNA after T-Rex is complete
         initDNAHelix(scene, function(dnaPs) {
-            console.log('DNA initialization callback called');
             var dnaPositionAttribute = dnaPs.geometry.getAttribute('position');
             
             var tRexParticleCount = tRexPositions.length / 3;
             var dnaParticleCount = dnaPositionAttribute.count;
-            console.log('DNA particle mapping - T-Rex count:', tRexParticleCount, 'DNA count:', dnaParticleCount);
             
             dnaPositions = new Float32Array(tRexPositions.length);
             
-            // Map DNA positions to match T-Rex particle count
             for (var i = 0; i < tRexParticleCount; i++) {
                 var dnaIndex = i % dnaParticleCount;
                 dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
                 dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
                 dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
             }
-            console.log('DNA positions set - final count:', dnaPositions.length / 3);
+            
+            dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
+            initMorphTimeline();
         });
     });
 }

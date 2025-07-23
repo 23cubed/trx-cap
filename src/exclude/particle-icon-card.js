@@ -150,12 +150,11 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                         colors[3 * i + 2] = particleColor.b;
                     }
                 } else {
-                    // Evenly distribute particles across all vertices
+                    // Use every vertex sequentially - one particle per vertex
                     for (var i = 0; i < numParticles; i++) {
-                        var vertexIndex = Math.floor((i / (numParticles - 1)) * (totalVertices - 1));
-                        positions[3 * i] = positionAttribute.getX(vertexIndex);
-                        positions[3 * i + 1] = positionAttribute.getY(vertexIndex);
-                        positions[3 * i + 2] = positionAttribute.getZ(vertexIndex);
+                        positions[3 * i] = positionAttribute.getX(i);
+                        positions[3 * i + 1] = positionAttribute.getY(i);
+                        positions[3 * i + 2] = positionAttribute.getZ(i);
                         
                         colors[3 * i] = particleColor.r;
                         colors[3 * i + 1] = particleColor.g;
@@ -252,7 +251,7 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                 var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
 
                 var particleMaterial = new window.THREE.PointsMaterial({
-                    size: 0.9,
+                    size: 0.7,
                     sizeAttenuation: false,
                     vertexColors: true,
                     map: texture,
@@ -387,13 +386,13 @@ if (document.readyState === 'loading') {
         initParticleIconCard(
             'healthcare-tech-canvas',
             { r: 0.451, g: 0.451, b: 0.451 },
-            3000,
+            null,
             false
         );
         initParticleIconCard(
             'biotech-canvas',
             { r: 0.451, g: 0.451, b: 0.451 },
-            2440,
+            null,
             false
         );
     });
@@ -407,7 +406,7 @@ if (document.readyState === 'loading') {
     initParticleIconCard(
         'biotech-canvas',
         { r: 0.451, g: 0.451, b: 0.451 },
-        2440,
-        null
+        null,
+        false
     );
 }

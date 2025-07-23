@@ -2,4 +2,21 @@
 /* Add your custom CSS here */
 
 /* This file will be bundled with your JavaScript */
-/* You can import this in your index.js if needed */ 
+/* You can import this in your index.js if needed */
+
+/* Responsive Canvas Styling */
+#texture-canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    outline: none; /* Remove blue outline on focus */
+}
+
+/* Ensure container takes full viewport */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent scrollbars during resize */
+} 
