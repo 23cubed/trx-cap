@@ -345,16 +345,6 @@ function initParticleField() {
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
 
-    // Store renderer reference for cleanup
-    if (!window.activeRenderers) {
-        window.activeRenderers = [];
-    }
-    window.activeRenderers.push({
-        renderer: renderer,
-        canvas: canvas,
-        canvasId: 'texture-canvas'
-    });
-
     var scene = new window.THREE.Scene();
     var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
     camera.position.set(0, 0, 80);
@@ -715,25 +705,6 @@ function initParticleField() {
         }
     });
 }
-
-// Add cleanup function for page refreshes
-function cleanupParticleRenderers() {
-    if (window.activeRenderers) {
-        window.activeRenderers.forEach(item => {
-            if (item.renderer) {
-                item.renderer.setAnimationLoop(null);
-                item.renderer.dispose();
-            }
-        });
-        window.activeRenderers = [];
-    }
-}
-
-// Make cleanup function available globally
-window.cleanupParticleRenderers = cleanupParticleRenderers;
-
-// Clean up on page unload/refresh
-window.addEventListener('beforeunload', cleanupParticleRenderers);
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initParticleField);

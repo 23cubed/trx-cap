@@ -1,5 +1,3 @@
-window.activeRenderers = window.activeRenderers || [];
-
 function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -18,13 +16,6 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
-    
-    // Store renderer reference for cleanup
-    window.activeRenderers.push({
-        renderer: renderer,
-        canvas: canvas,
-        canvasId: canvasId
-    });
     
     canvas.style.backgroundColor = 'transparent';
 
@@ -420,19 +411,3 @@ if (document.readyState === 'loading') {
         false
     );
 }
-
-// Add cleanup function
-function cleanupParticleRenderers() {
-    if (window.activeRenderers) {
-        window.activeRenderers.forEach(item => {
-            if (item.renderer) {
-                item.renderer.setAnimationLoop(null);
-                item.renderer.dispose();
-            }
-        });
-        window.activeRenderers = [];
-    }
-}
-
-// Make cleanup function available globally
-window.cleanupParticleRenderers = cleanupParticleRenderers;
