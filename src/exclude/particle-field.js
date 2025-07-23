@@ -1,19 +1,133 @@
 // Position configuration - single source of truth
 var MESH_POSITIONS = {
-    TREX: { x: 60, y: -5, z: 0 },
+    TREX: { x: 100, y: -5, z: 0 },
     DNA: { x: 40, y: -40, z: 0 }
 };
 
+// Global variables to store mesh data for vertex density calculation
+var meshData = {
+    trex: null,
+    dna: null
+};
+
+// Function to calculate and log vertex density recommendations
+function calculateVertexDensityRecommendation() {
+    if (meshData.trex && meshData.dna) {
+        var trexDensity = meshData.trex.vertexCount / meshData.trex.surfaceArea;
+        var dnaDensity = meshData.dna.vertexCount / meshData.dna.surfaceArea;
+        var recommendedDnaVertexCount = Math.round(trexDensity * meshData.dna.surfaceArea);
+        
+        console.log('=== VERTEX DENSITY ANALYSIS ===');
+        console.log('T-Rex vertex density:', trexDensity.toFixed(6), 'vertices per unit area');
+        console.log('DNA current vertex density:', dnaDensity.toFixed(6), 'vertices per unit area');
+        console.log('Recommended DNA vertex count for matching T-Rex density:', recommendedDnaVertexCount);
+        console.log('Current DNA vertex count:', meshData.dna.vertexCount);
+        console.log('Density ratio (T-Rex/DNA):', (trexDensity / dnaDensity).toFixed(2) + 'x');
+        console.log('===============================');
+    }
+}
+
+// Function to calculate surface area of a BufferGeometry (handles both triangles and quads)
+function calculateSurfaceArea(geometry) {
+    var positionAttribute = geometry.getAttribute('position');
+    var indexAttribute = geometry.getIndex();
+    var totalArea = 0;
+    
+    var v0 = new window.THREE.Vector3();
+    var v1 = new window.THREE.Vector3();
+    var v2 = new window.THREE.Vector3();
+    var v3 = new window.THREE.Vector3();
+    var edge1 = new window.THREE.Vector3();
+    var edge2 = new window.THREE.Vector3();
+    var cross = new window.THREE.Vector3();
+    
+    // Helper function to calculate quad area by splitting into two triangles
+    function calculateQuadArea(a, b, c, d) {
+        v0.fromBufferAttribute(positionAttribute, a);
+        v1.fromBufferAttribute(positionAttribute, b);
+        v2.fromBufferAttribute(positionAttribute, c);
+        v3.fromBufferAttribute(positionAttribute, d);
+        
+        // Triangle 1: a, b, c
+        edge1.subVectors(v1, v0);
+        edge2.subVectors(v2, v0);
+        cross.crossVectors(edge1, edge2);
+        var area1 = cross.length() * 0.5;
+        
+        // Triangle 2: a, c, d
+        edge1.subVectors(v2, v0);
+        edge2.subVectors(v3, v0);
+        cross.crossVectors(edge1, edge2);
+        var area2 = cross.length() * 0.5;
+        
+        return area1 + area2;
+    }
+    
+    if (indexAttribute) {
+        // Check if we have quads (count divisible by 4) or triangles (count divisible by 3)
+        if (indexAttribute.count % 4 === 0) {
+            // Quad mesh - every 4 indices form a quad
+            for (var i = 0; i < indexAttribute.count; i += 4) {
+                var a = indexAttribute.getX(i);
+                var b = indexAttribute.getX(i + 1);
+                var c = indexAttribute.getX(i + 2);
+                var d = indexAttribute.getX(i + 3);
+                
+                totalArea += calculateQuadArea(a, b, c, d);
+            }
+        } else {
+            // Triangle mesh - every 3 indices form a triangle
+            for (var i = 0; i < indexAttribute.count; i += 3) {
+                var a = indexAttribute.getX(i);
+                var b = indexAttribute.getX(i + 1);
+                var c = indexAttribute.getX(i + 2);
+                
+                v0.fromBufferAttribute(positionAttribute, a);
+                v1.fromBufferAttribute(positionAttribute, b);
+                v2.fromBufferAttribute(positionAttribute, c);
+                
+                edge1.subVectors(v1, v0);
+                edge2.subVectors(v2, v0);
+                cross.crossVectors(edge1, edge2);
+                
+                totalArea += cross.length() * 0.5;
+            }
+        }
+    } else {
+        // Non-indexed geometry
+        if (positionAttribute.count % 4 === 0) {
+            // Quad mesh - every 4 vertices form a quad
+            for (var i = 0; i < positionAttribute.count; i += 4) {
+                totalArea += calculateQuadArea(i, i + 1, i + 2, i + 3);
+            }
+        } else {
+            // Triangle mesh - every 3 vertices form a triangle
+            for (var i = 0; i < positionAttribute.count; i += 3) {
+                v0.fromBufferAttribute(positionAttribute, i);
+                v1.fromBufferAttribute(positionAttribute, i + 1);
+                v2.fromBufferAttribute(positionAttribute, i + 2);
+                
+                edge1.subVectors(v1, v0);
+                edge2.subVectors(v2, v0);
+                cross.crossVectors(edge1, edge2);
+                
+                totalArea += cross.length() * 0.5;
+            }
+        }
+    }
+    
+    return totalArea;
+}
+
 function initTRex(scene, setParticleSystem) {
     var loader = new window.GLTFLoader();
-    var tRexUrl = 'https://cdn.jsdelivr.net/gh/23cubed/trx-cap@24ae1e4fd28d49513b02d608aebfad9b71e24b4e/src/assets/t-rex.glb';
+    var tRexUrl = 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/t-rex-250k-uniform.glb';
 
     loader.load(
         tRexUrl,
         function (gltf) {
             gltf.scene.updateMatrixWorld(true);
         
-            // Use vertex mapping instead of surface sampling for T-Rex
             // Find the first Mesh child
             var mesh = null;
             gltf.scene.traverse(function(child) {
@@ -25,8 +139,22 @@ function initTRex(scene, setParticleSystem) {
             var meshScale = 120;
             mesh.geometry.scale(meshScale, meshScale, meshScale);
             
+            // Calculate surface area after scaling
+            var surfaceArea = calculateSurfaceArea(mesh.geometry);
+            var vertexCount = mesh.geometry.getAttribute('position').count;
+            console.log('T-Rex surface area after scaling:', surfaceArea);
+            console.log('T-Rex vertex count:', vertexCount);
+            
+            // Store T-Rex mesh data for density calculation
+            meshData.trex = {
+                surfaceArea: surfaceArea,
+                vertexCount: vertexCount
+            };
+            calculateVertexDensityRecommendation();
+            
             // Optionally ensure normals are current for shading
             mesh.geometry.computeVertexNormals();
+            
             // Use vertex mapping - extract all vertices from the mesh
             var positionAttribute = mesh.geometry.getAttribute('position');
             var numParticles = positionAttribute.count;
@@ -108,7 +236,7 @@ function initDNAHelix(scene, setParticleSystem) {
         function (gltf) {
             gltf.scene.updateMatrixWorld(true);
         
-            // Uniformly sample points on the mesh surface using MeshSurfaceSampler
+            // Use vertex mapping instead of surface sampling for DNA
             // Find the first Mesh child
             var mesh = null;
             gltf.scene.traverse(function(child) {
@@ -116,28 +244,41 @@ function initDNAHelix(scene, setParticleSystem) {
             });
             if (!mesh) return;
             
-            // Scale the mesh geometry before sampling particles
+            // Scale the mesh geometry before extracting vertices
             var meshScale = 2;
             mesh.geometry.scale(meshScale, meshScale, meshScale);
             
+            // Calculate surface area after scaling
+            var surfaceArea = calculateSurfaceArea(mesh.geometry);
+            var originalVertexCount = mesh.geometry.getAttribute('position').count;
+            console.log('DNA surface area after scaling:', surfaceArea);
+            console.log('DNA original vertex count:', originalVertexCount);
+            
             // Optionally ensure normals are current for shading
             mesh.geometry.computeVertexNormals();
-            // Setup sampler and sample exactly numParticles
-            var numParticles = 5000;
-            var sampler = new window.MeshSurfaceSampler(mesh).build();
+            
+            // Use vertex mapping instead of surface sampling for DNA
+            var positionAttribute = mesh.geometry.getAttribute('position');
+            var numParticles = positionAttribute.count;
             var positions = new Float32Array(numParticles * 3);
             var colors = new Float32Array(numParticles * 3);
-            var tempPosition = new window.THREE.Vector3();
+            
             for (var i = 0; i < numParticles; i++) {
-                sampler.sample(tempPosition);
-                positions[3 * i]     = tempPosition.x;
-                positions[3 * i + 1] = tempPosition.y;
-                positions[3 * i + 2] = tempPosition.z;
+                positions[3 * i]     = positionAttribute.getX(i);
+                positions[3 * i + 1] = positionAttribute.getY(i);
+                positions[3 * i + 2] = positionAttribute.getZ(i);
                 // white color
                 colors[3 * i]     = 1;
                 colors[3 * i + 1] = 1;
                 colors[3 * i + 2] = 1;
             }
+            
+            // Store DNA mesh data for density calculation (using actual vertex count)
+            meshData.dna = {
+                surfaceArea: surfaceArea,
+                vertexCount: numParticles
+            };
+            calculateVertexDensityRecommendation();
             // Calculate center of mass from positions to center the geometry
             var centerX = 0, centerY = 0, centerZ = 0;
             for (var i = 0; i < numParticles; i++) {
@@ -154,8 +295,7 @@ function initDNAHelix(scene, setParticleSystem) {
                 var x = positions[3 * i] - centerX;
                 var y = positions[3 * i + 1] - centerY;
                 var z = positions[3 * i + 2] - centerZ;
-                
-                            // Apply 90-degree rotation around x-axis: (x, y, z) -> (x, -z, y)
+            
            
         }
 

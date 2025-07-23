@@ -140,7 +140,7 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
                 var positionAttribute = mesh.geometry.getAttribute('position');
                 var totalVertices = positionAttribute.count;
                 
-                var numParticles = Math.min(maxParticles, totalVertices);
+                var numParticles = maxParticles === null ? totalVertices : Math.min(maxParticles, totalVertices);
                 var positions = new Float32Array(numParticles * 3);
                 var colors = new Float32Array(numParticles * 3);
                 
