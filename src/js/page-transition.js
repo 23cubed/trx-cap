@@ -2,6 +2,7 @@ import { setScrolled, initNavbar } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
+import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 
 barba.init({
     transitions: [{
@@ -49,6 +50,7 @@ barba.init({
         if (data.next.namespace == 'home') {
           initNavbar();
           initScrollingGutters();
+          initParticleHeroMeshMorph();
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();
