@@ -51,49 +51,55 @@ barba.init({
         if (data.next.namespace !== 'home') {
           setScrolled();
         }
-        if (data.next.namespace == 'home') {
+        const isHome = data.next.namespace == 'home';
+        if (isHome) {
           initNavbar();
           initScrollingGutters();
-          // Initialize particles independently on home transitions
-          initParticleHeroMeshMorph();
-          InitParticleTexture();
-          initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false);
-          initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false);
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();
         }
-        
-        const timeline = gsap.timeline({
-          onComplete: () => {
-            if (heroCTA) {
-              animateHeroCTA();
+
+        const waitForParticles = isHome
+          ? Promise.allSettled([
+              initParticleHeroMeshMorph(),
+              InitParticleTexture(),
+              initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
+              initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
+            ])
+          : Promise.resolve();
+
+        return waitForParticles.then(() => {
+          const timeline = gsap.timeline({
+            onComplete: () => {
+              if (heroCTA) {
+                animateHeroCTA();
+              }
             }
-          }
-        })
-          .set(data.next.container, { display: 'block' })
-          .call(() => ScrollTrigger.refresh())
-          .to('.transition-v2', {
-            top: `-${cornerRadiusValue * 1.5}rem`,
-            left: `-${cornerRadiusValue * 1.5}rem`,
-            right: `-${cornerRadiusValue * 1.5}rem`,
-            bottom: `-${cornerRadiusValue * 1.5}rem`,
-            duration: 0.4,
-            ease: 'power2.inOut'
           })
-          .to('.transition-sheet-bottom', {
-            height: `${cornerRadiusValue}rem`,
-            duration: 0.4,
-            ease: 'power2.inOut'
-          }, '-=0.4')
-          .to('.transition-cover', {
-            opacity: 0,
-            duration: 0.3,
-            ease: 'power2.inOut'
-          }, '-=0')
-          .set('.transition-cover', { display: 'none' });
-        
-        return timeline;
+            .set(data.next.container, { display: 'block' })
+            .call(() => ScrollTrigger.refresh())
+            .to('.transition-v2', {
+              top: `-${cornerRadiusValue * 1.5}rem`,
+              left: `-${cornerRadiusValue * 1.5}rem`,
+              right: `-${cornerRadiusValue * 1.5}rem`,
+              bottom: `-${cornerRadiusValue * 1.5}rem`,
+              duration: 0.4,
+              ease: 'power2.inOut'
+            })
+            .to('.transition-sheet-bottom', {
+              height: `${cornerRadiusValue}rem`,
+              duration: 0.4,
+              ease: 'power2.inOut'
+            }, '-=0.4')
+            .to('.transition-cover', {
+              opacity: 0,
+              duration: 0.3,
+              ease: 'power2.inOut'
+            }, '-=0')
+            .set('.transition-cover', { display: 'none' });
+          return timeline;
+        });
       }
     }]
   });

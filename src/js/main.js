@@ -52,5 +52,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './text-read-more.js', './three-js-module.js']);
-console.log('📅 Updated at 8/10/2025, 10:44:41 PM EST');
+console.log('📅 Updated at 8/10/2025, 10:53:24 PM EST');
 console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
