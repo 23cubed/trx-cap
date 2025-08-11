@@ -2,7 +2,7 @@ import { setScrolled, initNavbar } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
-import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
+import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon } from './particle-icons.js';
 
@@ -11,6 +11,8 @@ barba.init({
       leave(data) {
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
+        // Clean up morph renderer/listeners before DOM is swapped
+        try { disposeParticleHeroMeshMorph(); } catch (e) {}
         
         return gsap.timeline()
           .set('.transition-cover', { display: 'block' })

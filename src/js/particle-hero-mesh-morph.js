@@ -12,6 +12,14 @@ var MESH_CONFIG = {
     }
 };
 
+// Internal state for cleanup/re-init between SPA navigations
+var morphState = {
+    renderer: null,
+    canvas: null,
+    mouseHandler: null,
+    resizeHandler: null
+};
+
 // Repulsion effect configuration
 var REPULSION_CONFIG = {
     screenRadius: 0.5,
@@ -186,6 +194,18 @@ function initParticleHeroMeshMorph() {
     var trexUrl = MESH_CONFIG.TREX.url;
     var dnaUrl = MESH_CONFIG.DNA.url;
     
+
+    // If a previous renderer exists on a different canvas, clean it up
+    if (morphState.renderer && morphState.canvas !== canvas) {
+        try { morphState.renderer.setAnimationLoop(null); } catch (e) {}
+        try { morphState.renderer.dispose(); } catch (e) {}
+        if (morphState.mouseHandler) window.removeEventListener('mousemove', morphState.mouseHandler);
+        if (morphState.resizeHandler) window.removeEventListener('resize', morphState.resizeHandler);
+        morphState.renderer = null;
+        morphState.canvas = null;
+        morphState.mouseHandler = null;
+        morphState.resizeHandler = null;
+    }
 
     // Setup Three.js renderer and scene
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -523,8 +543,15 @@ function initParticleHeroMeshMorph() {
         }
     }
     
-    window.addEventListener('mousemove', updateMousePosition);
-    window.addEventListener('resize', handleWindowResize);
+    // Register and remember handlers for cleanup
+    morphState.mouseHandler = updateMousePosition;
+    morphState.resizeHandler = handleWindowResize;
+    window.addEventListener('mousemove', morphState.mouseHandler);
+    window.addEventListener('resize', morphState.resizeHandler);
+
+    // Save state
+    morphState.renderer = renderer;
+    morphState.canvas = canvas;
 
         initTRex(scene, trexUrl)
             .then(function(ps) {
@@ -565,4 +592,18 @@ function initParticleHeroMeshMorph() {
     return particleInitPromise;
 }
 
-export { initParticleHeroMeshMorph };
+function disposeParticleHeroMeshMorph() {
+    if (morphState.renderer) {
+        try { morphState.renderer.setAnimationLoop(null); } catch (e) {}
+        try { morphState.renderer.dispose(); } catch (e) {}
+    }
+    if (morphState.mouseHandler) window.removeEventListener('mousemove', morphState.mouseHandler);
+    if (morphState.resizeHandler) window.removeEventListener('resize', morphState.resizeHandler);
+    morphState.renderer = null;
+    morphState.canvas = null;
+    morphState.mouseHandler = null;
+    morphState.resizeHandler = null;
+    particleInitPromise = null;
+}
+
+export { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph };
