@@ -72,9 +72,11 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 drawHeight = canvas.clientWidth / imgAspect;
             }
             
-            // Scale down for particle sampling
-            const sampleWidth = Math.floor(drawWidth / particleSpacing);
-            const sampleHeight = Math.floor(drawHeight / particleSpacing);
+            // Scale down for particle sampling (ensure minimum 1x1 to avoid IndexSizeError)
+            let sampleWidth = Math.floor(drawWidth / particleSpacing);
+            let sampleHeight = Math.floor(drawHeight / particleSpacing);
+            if (!Number.isFinite(sampleWidth) || sampleWidth <= 0) sampleWidth = 1;
+            if (!Number.isFinite(sampleHeight) || sampleHeight <= 0) sampleHeight = 1;
             
             tempCanvas.width = sampleWidth;
             tempCanvas.height = sampleHeight;
@@ -82,8 +84,8 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             // Draw the image to the temp canvas
             tempCtx.drawImage(img, 0, 0, sampleWidth, sampleHeight);
             
-            // Get pixel data
-            const imageData = tempCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+            // Get pixel data with safe dimensions
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
             const pixels = imageData.data;
             
             // Process all pixels and calculate opacity based on whiteness
@@ -93,9 +95,9 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             let minLuminance = 1;
             let maxLuminance = 0;
             
-            for (let y = 0; y < sampleHeight; y++) {
-                for (let x = 0; x < sampleWidth; x++) {
-                    const index = (y * sampleWidth + x) * 4;
+            for (let y = 0; y < tempCanvas.height; y++) {
+                for (let x = 0; x < tempCanvas.width; x++) {
+                    const index = (y * tempCanvas.width + x) * 4;
                     const r = pixels[index];
                     const g = pixels[index + 1];
                     const b = pixels[index + 2];
@@ -113,9 +115,9 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             const luminanceRange = maxLuminance - minLuminance;
             
             // Second pass: create particles using the actual luminance range
-            for (let y = 0; y < sampleHeight; y++) {
-                for (let x = 0; x < sampleWidth; x++) {
-                    const index = (y * sampleWidth + x) * 4;
+            for (let y = 0; y < tempCanvas.height; y++) {
+                for (let x = 0; x < tempCanvas.width; x++) {
+                    const index = (y * tempCanvas.width + x) * 4;
                     const r = pixels[index];
                     const g = pixels[index + 1];
                     const b = pixels[index + 2];
@@ -144,8 +146,8 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                             finalOpacity = finalOpacity * transparencyCeiling;
                             
                             // Store normalized coordinates (0-1) for resolution independence
-                            const normalizedX = x / sampleWidth;
-                            const normalizedY = y / sampleHeight;
+                            const normalizedX = x / tempCanvas.width;
+                            const normalizedY = y / tempCanvas.height;
                             
                             particleData.push({
                                 normalizedX: normalizedX,
