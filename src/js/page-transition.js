@@ -32,6 +32,8 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
+        window.scrollTo(0, 0);
+        
         const heroCTA = document.querySelector("#hero .hero-cta");
         if (heroCTA) {
           gsap.set(heroCTA, { opacity: 0 });
