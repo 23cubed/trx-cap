@@ -187,6 +187,7 @@ function initHero() {
                 duration: 1,
                 onComplete: () => homeLoader.remove()
             });
+            console.log("Loader removed");
         }
         pageLoadScene();
     }).catch(() => {
@@ -196,6 +197,7 @@ function initHero() {
                 duration: 1,
                 onComplete: () => homeLoader.remove()
             });
+            console.log("Loader removed");
         }
         pageLoadScene();
     });
