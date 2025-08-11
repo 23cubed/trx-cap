@@ -12,6 +12,16 @@ var MESH_CONFIG = {
     }
 };
 
+// Cache a reusable particle texture
+var __PARTICLE_TEXTURE = null;
+function getParticleTexture() {
+    if (!__PARTICLE_TEXTURE) {
+        var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
+        __PARTICLE_TEXTURE = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+    }
+    return __PARTICLE_TEXTURE;
+}
+
 // Internal state for cleanup/re-init between SPA navigations
 var morphState = {
     renderer: null,
@@ -79,17 +89,18 @@ function initTRex(scene, assetUrl) {
                 }
 
                 var particleGeometry = new window.THREE.BufferGeometry();
-                particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-                particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-
-                var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-                var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+                var posAttr = new window.THREE.Float32BufferAttribute(positions, 3);
+                var colAttr = new window.THREE.Float32BufferAttribute(colors, 3);
+                posAttr.setUsage(window.THREE.DynamicDrawUsage);
+                colAttr.setUsage(window.THREE.DynamicDrawUsage);
+                particleGeometry.setAttribute('position', posAttr);
+                particleGeometry.setAttribute('color', colAttr);
 
                 var particleMaterial = new window.THREE.PointsMaterial({
                     size: 1.5,
                     sizeAttenuation: false,
                     vertexColors: true,
-                    map: texture,
+                    map: getParticleTexture(),
                     transparent: true,
                     blending: window.THREE.AdditiveBlending,
                     depthWrite: false
@@ -97,6 +108,7 @@ function initTRex(scene, assetUrl) {
 
                 var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
                 newParticleSystem.position.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
+                newParticleSystem.frustumCulled = false;
 
                 scene.add(newParticleSystem);
                 // Dispose original GLTF resources to free memory
@@ -154,17 +166,18 @@ function initDNAHelix(scene, assetUrl) {
                 }
 
                 var particleGeometry = new window.THREE.BufferGeometry();
-                particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-                particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-
-                var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-                var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+                var posAttr = new window.THREE.Float32BufferAttribute(positions, 3);
+                var colAttr = new window.THREE.Float32BufferAttribute(colors, 3);
+                posAttr.setUsage(window.THREE.DynamicDrawUsage);
+                colAttr.setUsage(window.THREE.DynamicDrawUsage);
+                particleGeometry.setAttribute('position', posAttr);
+                particleGeometry.setAttribute('color', colAttr);
 
                 var particleMaterial = new window.THREE.PointsMaterial({
                     size: 3,
                     sizeAttenuation: false,
                     vertexColors: true,
-                    map: texture,
+                    map: getParticleTexture(),
                     transparent: true,
                     blending: window.THREE.AdditiveBlending,
                     depthWrite: false
@@ -172,6 +185,7 @@ function initDNAHelix(scene, assetUrl) {
 
                 var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
                 newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
+                newParticleSystem.frustumCulled = false;
 
                 // Dispose original GLTF resources to free memory
                 try {
@@ -242,6 +256,7 @@ function initParticleHeroMeshMorph() {
     var particleSystem = null;
     var tRexPositions = null;
     var dnaPositions = null;
+    var deltaPositions = null;
     var dissolveDisplacements = null;
     var morphTimeline = null;
     var morphProgress = { value: 1 };
@@ -323,19 +338,25 @@ function initParticleHeroMeshMorph() {
             var count = positionAttribute.count;
             var progress = morphProgress.value;
             var dissolveIntensity = Math.sin(progress * Math.PI);
+            var positionArray = positionAttribute.array;
+            var colorAttribute = particleSystem.geometry.getAttribute('color');
+            var colorArray = colorAttribute.array;
+            var sumZ = 0;
 
             for (var i = 0; i < count; i++) {
                 var dnaX = dnaPositions[3 * i];
                 var dnaY = dnaPositions[3 * i + 1];
                 var dnaZ = dnaPositions[3 * i + 2];
 
-                var tRexX = tRexPositions[3 * i];
-                var tRexY = tRexPositions[3 * i + 1];
-                var tRexZ = tRexPositions[3 * i + 2];
+                var dX = deltaPositions ? deltaPositions[3 * i] : (tRexPositions[3 * i] - dnaX);
+                var dY = deltaPositions ? deltaPositions[3 * i + 1] : (tRexPositions[3 * i + 1] - dnaY);
+                var dZ = deltaPositions ? deltaPositions[3 * i + 2] : (tRexPositions[3 * i + 2] - dnaZ);
 
-                var baseX = dnaX + (tRexX - dnaX) * progress + dissolveDisplacements[3 * i] * dissolveIntensity;
-                var baseY = dnaY + (tRexY - dnaY) * progress + dissolveDisplacements[3 * i + 1] * dissolveIntensity;
-                var baseZ = dnaZ + (tRexZ - dnaZ) * progress + dissolveDisplacements[3 * i + 2] * dissolveIntensity;
+                var baseX = dnaX + dX * progress + dissolveDisplacements[3 * i] * dissolveIntensity;
+                var baseY = dnaY + dY * progress + dissolveDisplacements[3 * i + 1] * dissolveIntensity;
+                var baseZ = dnaZ + dZ * progress + dissolveDisplacements[3 * i + 2] * dissolveIntensity;
+
+                sumZ += baseZ;
 
                 // Reuse tmpWorld vector for projection
                 tmpWorld.set(baseX, baseY, baseZ).applyMatrix4(particleSystem.matrixWorld).project(camera);
@@ -371,7 +392,10 @@ function initParticleHeroMeshMorph() {
                 var finalX = baseX + repulsionOffsets[3 * i];
                 var finalY = baseY + repulsionOffsets[3 * i + 1];
 
-                positionAttribute.setXYZ(i, finalX, finalY, baseZ);
+                var idx = 3 * i;
+                positionArray[idx] = finalX;
+                positionArray[idx + 1] = finalY;
+                positionArray[idx + 2] = baseZ;
             }
             positionAttribute.needsUpdate = true;
 
@@ -380,8 +404,20 @@ function initParticleHeroMeshMorph() {
             tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
             particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, progress);
 
-            // Update depth-based colors once per frame (final positions)
-            updateDepthBasedColors();
+            // Update depth-based colors once per frame (final positions) using one pass for normalization
+            var avgZ = sumZ / count;
+            var nearZ = avgZ + depthRange / 2;
+            var farZ = avgZ - depthRange / 2;
+            for (var i = 0; i < count; i++) {
+                var z = positionArray[3 * i + 2];
+                var normalizedZ = Math.max(0, Math.min(1, (z - farZ) / (nearZ - farZ)));
+                var opacity = minOpacity + (maxOpacity - minOpacity) * normalizedZ;
+                var ci = 3 * i;
+                colorArray[ci] = opacity;
+                colorArray[ci + 1] = opacity;
+                colorArray[ci + 2] = opacity;
+            }
+            colorAttribute.needsUpdate = true;
         }
         
         // Smooth rotation based on mouse position
@@ -562,6 +598,13 @@ function initParticleHeroMeshMorph() {
                     dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
                     dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
                     dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
+                }
+                // Precompute deltas for faster per-frame morph
+                deltaPositions = new Float32Array(tRexPositions.length);
+                for (var i = 0; i < tRexParticleCount; i++) {
+                    deltaPositions[3 * i] = tRexPositions[3 * i] - dnaPositions[3 * i];
+                    deltaPositions[3 * i + 1] = tRexPositions[3 * i + 1] - dnaPositions[3 * i + 1];
+                    deltaPositions[3 * i + 2] = tRexPositions[3 * i + 2] - dnaPositions[3 * i + 2];
                 }
                 dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
                 initMorphTimeline();
