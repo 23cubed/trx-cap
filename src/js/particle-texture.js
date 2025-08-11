@@ -2,18 +2,18 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
     const canvases = document.querySelectorAll('canvas.particle-texture');
     const initPromises = [];
     
-    // Global mouse tracking for window-based repulsion
-    let windowMouse = { x: 0, y: 0 };
-    
-    function updateWindowMousePosition(event) {
-        windowMouse.x = event.clientX;
-        windowMouse.y = event.clientY;
+    // Global mouse tracking for window-based repulsion (persist across Barba navigations)
+    if (!window.__particleTextureMouse) {
+        window.__particleTextureMouse = { x: 0, y: 0 };
     }
-    
+    function updateWindowMousePosition(event) {
+        window.__particleTextureMouse.x = event.clientX;
+        window.__particleTextureMouse.y = event.clientY;
+    }
     // Add window mouse listener once
-    if (!window.particleMatrixMouseListener) {
+    if (!window.__particleTextureMouseListenerRegistered) {
         window.addEventListener('mousemove', updateWindowMousePosition);
-        window.particleMatrixMouseListener = true;
+        window.__particleTextureMouseListenerRegistered = true;
     }
 
     canvases.forEach(canvas => {
@@ -296,8 +296,8 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 const currentRect = canvas.getBoundingClientRect();
                 
                 // Convert window mouse coordinates to canvas-relative coordinates
-                const canvasX = windowMouse.x - currentRect.left;
-                const canvasY = windowMouse.y - currentRect.top;
+                const canvasX = window.__particleTextureMouse.x - currentRect.left;
+                const canvasY = window.__particleTextureMouse.y - currentRect.top;
                 
                 // Convert to world coordinates using clientWidth/clientHeight
                 const worldX = canvasX - canvas.clientWidth / 2;
