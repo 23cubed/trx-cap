@@ -1,7 +1,7 @@
 import { setScrolled, initNavbar } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
-import { initScrollingGutters } from './scrolling-gutters.js';
+import { initScrollingGutters } from '../exclude/scrolling-gutters.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon } from './particle-icons.js';
