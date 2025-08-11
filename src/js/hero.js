@@ -168,9 +168,33 @@ function pageLoadScene() {
         );
 }
 
+function showLoader() {
+    const counter = document.querySelector('.counter');
+    gsap.set(".loader", { display: "flex", autoAlpha: 1 });
+    return gsap.to({ val: 0 }, {
+        val: 100,
+        duration: 3,
+        ease: "power1.inOut",
+        onUpdate: function () {
+            counter.textContent = `${Math.round(this.targets()[0].val)}%`;
+        }
+    }).then();
+}
+
+function hideLoader() {
+    return gsap.to('.loader', {
+        autoAlpha: 0,
+        duration: 0.8,
+        ease: "power4.out",
+        onComplete: () => {
+            const loader = document.querySelector('.loader');
+            if (loader) loader.remove();
+        }
+    });
+}
+
 function initHero() {
     const heroHeading = document.querySelector("#heroHeading");
-    const homeLoader = document.querySelector(".loader");
 
     if (heroHeading) {
         splitTextElement(heroHeading);
@@ -181,24 +205,10 @@ function initHero() {
         initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
         initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
     ]).then(() => {
-        if (homeLoader) {
-            gsap.set(homeLoader, { display: "flex" });
-            gsap.to(homeLoader, {
-                duration: 1,
-                onComplete: () => homeLoader.remove()
-            });
-            console.log("Loader removed");
-        }
-        pageLoadScene();
+        showLoader()
+        .then(() => hideLoader())
+        .then(() => pageLoadScene());
     }).catch(() => {
-        if (homeLoader) {
-            gsap.set(homeLoader, { display: "flex" });
-            gsap.to(homeLoader, {
-                duration: 1,
-                onComplete: () => homeLoader.remove()
-            });
-            console.log("Loader removed");
-        }
         pageLoadScene();
     });
 }
