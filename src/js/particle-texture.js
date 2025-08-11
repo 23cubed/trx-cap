@@ -1,5 +1,6 @@
 function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
     const canvases = document.querySelectorAll('canvas.particle-texture');
+    const initPromises = [];
     
     // Global mouse tracking for window-based repulsion
     let windowMouse = { x: 0, y: 0 };
@@ -16,6 +17,9 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
     }
 
     canvases.forEach(canvas => {
+        let resolveCanvasInit;
+        const canvasInitPromise = new Promise((resolve) => { resolveCanvasInit = resolve; });
+        initPromises.push(canvasInitPromise);
         const renderer = new window.THREE.WebGLRenderer({ 
             canvas: canvas, 
             antialias: true, 
@@ -44,7 +48,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
         const loader = new window.THREE.TextureLoader();
         loader.load(imageUrl, (texture) => {
             createParticlesFromImage(texture);
-        });
+        }, undefined, () => { resolveCanvasInit(false); });
 
         function createParticlesFromImage(texture) {
             const img = texture.image;
@@ -369,8 +373,13 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 
                 renderer.render(scene, camera);
             });
+            resolveCanvasInit(true);
         }
     });
+    if (initPromises.length === 0) {
+        return Promise.resolve(false);
+    }
+    return Promise.allSettled(initPromises).then(() => true);
 }
 
 export { InitParticleTexture };

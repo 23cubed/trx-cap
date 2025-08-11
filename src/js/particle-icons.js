@@ -1,12 +1,12 @@
 function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
-        return;
+        return Promise.resolve(false);
     }
 
     var meshUrl = canvas.getAttribute('data-mesh-url');
     if (!meshUrl) {
-        return;
+        return Promise.resolve(false);
     }
 
     var width = canvas.offsetWidth,
@@ -41,14 +41,15 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
 
     function loadMeshAndCreateParticles() {
         if (!window.THREE || !window.GLTFLoader) {
-            return;
+            return Promise.resolve(false);
         }
         
-        var loader = new window.GLTFLoader();
-        
-        loader.load(
-            meshUrl,
-            function (gltf) {
+        return new Promise(function(resolve) {
+            var loader = new window.GLTFLoader();
+            
+            loader.load(
+                meshUrl,
+                function (gltf) {
                 var mesh = null;
                 gltf.scene.traverse(function(child) {
                     if (child.isMesh) {
@@ -56,9 +57,10 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                     }
                 });
                 
-                if (!mesh) {
-                    return;
-                }
+                    if (!mesh) {
+                        resolve(false);
+                        return;
+                    }
 
                 var meshScale = 120;
                 mesh.geometry.scale(meshScale, meshScale, meshScale);
@@ -275,12 +277,15 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 });
 
                 startRenderLoop();
+                resolve(true);
             },
             function(progress) {
             },
             function (error) {
+                resolve(false);
             }
         );
+        });
     }
 
     function updateMousePosition(event) {
@@ -378,7 +383,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    loadMeshAndCreateParticles();
+    return loadMeshAndCreateParticles();
 }
 
 export { initParticleIcon };

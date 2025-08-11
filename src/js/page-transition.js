@@ -3,6 +3,8 @@ import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
+import { InitParticleTexture } from './particle-texture.js';
+import { initParticleIcon } from './particle-icons.js';
 
 barba.init({
     transitions: [{
@@ -50,7 +52,11 @@ barba.init({
         if (data.next.namespace == 'home') {
           initNavbar();
           initScrollingGutters();
+          // Initialize particles independently on home transitions
           initParticleHeroMeshMorph();
+          InitParticleTexture();
+          initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false);
+          initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false);
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();

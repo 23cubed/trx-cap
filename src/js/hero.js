@@ -5,6 +5,8 @@
 // Testing new build in pre-commit
 import { splitTextElement, animateSplitText } from './split-text.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
+import { InitParticleTexture } from './particle-texture.js';
+import { initParticleIcon } from './particle-icons.js';
 
 function animateHeroCTA() {
     const tl = gsap.timeline();
@@ -171,13 +173,16 @@ function initHero() {
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
-    initParticleHeroMeshMorph()
-        .then(() => {
-            pageLoadScene();
-        })
-        .catch(() => {
-            pageLoadScene();
-        });
+    Promise.allSettled([
+        initParticleHeroMeshMorph(),
+        InitParticleTexture(),
+        initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
+        initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
+    ]).then(() => {
+        pageLoadScene();
+    }).catch(() => {
+        pageLoadScene();
+    });
 }
 
 export { initHero, animateHeroCTA };
