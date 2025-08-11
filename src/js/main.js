@@ -20,7 +20,7 @@ import './three-js-module.js';
 import { initFormErrors } from './formErrors.js';
 import { animSectionsOnScroll } from './greenSection.js';
 import { initHero, animateHeroCTA } from './hero.js';
-import { initHeader, setScrolled } from './navbar.js';
+import { initNavbar, setScrolled } from './navbar.js';
 import { pageLoader } from './page-load.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { initParticleIconCard } from './particle-icons.js';
@@ -30,14 +30,14 @@ import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initFormErrors, animSectionsOnScroll, initHero, animateHeroCTA, initHeader, setScrolled, pageLoader, initParticleHeroMeshMorph, initParticleIconCard, InitParticleTexture, initScrollingGutters, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initFormErrors, animSectionsOnScroll, initHero, animateHeroCTA, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, initParticleIconCard, InitParticleTexture, initScrollingGutters, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initFormErrors = initFormErrors;
 window.animSectionsOnScroll = animSectionsOnScroll;
 window.initHero = initHero;
 window.animateHeroCTA = animateHeroCTA;
-window.initHeader = initHeader;
+window.initNavbar = initNavbar;
 window.setScrolled = setScrolled;
 window.pageLoader = pageLoader;
 window.initParticleHeroMeshMorph = initParticleHeroMeshMorph;
@@ -51,5 +51,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './text-read-more.js', './three-js-module.js']);
-console.log('📅 Updated at 8/10/2025, 8:50:42 PM EST');
-console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initHeader', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'initParticleIconCard', 'InitParticleTexture', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('📅 Updated at 8/10/2025, 8:52:39 PM EST');
+console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'initParticleIconCard', 'InitParticleTexture', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);

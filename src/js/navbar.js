@@ -4,7 +4,7 @@ gsap.defaults({
   ease: "trx-ease",
 });
 
-function initHeader() {
+function initNavbar() {
     const tl = gsap.timeline({ paused: true });
     const navBarBG = document.querySelectorAll("#navbar .background");     
     const navLogoCapSm = document.getElementById("navLogoCapSm");
@@ -43,4 +43,4 @@ function setScrolled() {
     gsap.set(navLogoCapLg, { x: "1%" });
 }
 
-export { initHeader, setScrolled };
+export { initNavbar, setScrolled };
