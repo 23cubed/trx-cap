@@ -1,4 +1,4 @@
-function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSample) {
+function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
         return;
@@ -381,4 +381,4 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
     loadMeshAndCreateParticles();
 }
 
-export { initParticleIconCard };
+export { initParticleIcon };
