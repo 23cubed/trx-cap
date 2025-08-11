@@ -24,9 +24,9 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             canvas: canvas, 
             antialias: true, 
             alpha: true, 
-            preserveDrawingBuffer: true 
+            preserveDrawingBuffer: false 
         });
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
         renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
         renderer.setClearColor(0x000000, 0);
         
@@ -243,9 +243,15 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             }
             
             const particleGeometry = new window.THREE.BufferGeometry();
-            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-            particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-            particleGeometry.setAttribute('opacity', new window.THREE.Float32BufferAttribute(opacities, 1));
+            const posAttr = new window.THREE.Float32BufferAttribute(positions, 3);
+            const colAttr = new window.THREE.Float32BufferAttribute(colors, 3);
+            const opaAttr = new window.THREE.Float32BufferAttribute(opacities, 1);
+            posAttr.setUsage(window.THREE.DynamicDrawUsage);
+            colAttr.setUsage(window.THREE.DynamicDrawUsage);
+            opaAttr.setUsage(window.THREE.DynamicDrawUsage);
+            particleGeometry.setAttribute('position', posAttr);
+            particleGeometry.setAttribute('color', colAttr);
+            particleGeometry.setAttribute('opacity', opaAttr);
             
             const svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="white"/></svg>';
             const particleTexture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
@@ -335,6 +341,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 // Apply mouse repulsion effect
                 if (particleSystem && basePositions) {
                     const positionAttribute = particleSystem.geometry.getAttribute('position');
+                    const posArray = positionAttribute.array;
                     const mouseWorldPos = getCanvasMousePosition();
                     
                     for (let i = 0; i < positionAttribute.count; i++) {
@@ -348,7 +355,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                         // Calculate distance from particle to mouse
                         const dx = baseX - mouseWorldPos.x;
                         const dy = baseY - mouseWorldPos.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const distance = Math.hypot(dx, dy);
                         
                         if (distance < repulsionRadius && distance > 0.1) {
                             const influence = Math.pow(1 - distance / repulsionRadius, 2);
@@ -367,8 +374,10 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                         // Apply the smoothed offset to the base position
                         const finalX = baseX + repulsionOffsets[3 * i];
                         const finalY = baseY + repulsionOffsets[3 * i + 1];
-                        
-                        positionAttribute.setXYZ(i, finalX, finalY, baseZ);
+                        const idx = 3 * i;
+                        posArray[idx] = finalX;
+                        posArray[idx + 1] = finalY;
+                        posArray[idx + 2] = baseZ;
                     }
                     positionAttribute.needsUpdate = true;
                 }

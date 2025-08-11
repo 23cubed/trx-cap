@@ -1,3 +1,13 @@
+// Cache a reusable particle sprite texture
+var __ICON_PARTICLE_TEXTURE = null;
+function getIconParticleTexture() {
+    if (!__ICON_PARTICLE_TEXTURE) {
+        var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
+        __ICON_PARTICLE_TEXTURE = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+    }
+    return __ICON_PARTICLE_TEXTURE;
+}
+
 function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -66,69 +76,6 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 mesh.geometry.scale(meshScale, meshScale, meshScale);
                 
                 mesh.geometry.computeVertexNormals();
-
-                // Calculate total surface area
-                var totalSurfaceArea = 0;
-                var positionAttribute = mesh.geometry.getAttribute('position');
-                var indexAttribute = mesh.geometry.getIndex();
-                
-                if (indexAttribute) {
-                    // Indexed geometry
-                    for (var i = 0; i < indexAttribute.count; i += 3) {
-                        var a = indexAttribute.getX(i);
-                        var b = indexAttribute.getX(i + 1);
-                        var c = indexAttribute.getX(i + 2);
-                        
-                        var vA = new window.THREE.Vector3(
-                            positionAttribute.getX(a),
-                            positionAttribute.getY(a),
-                            positionAttribute.getZ(a)
-                        );
-                        var vB = new window.THREE.Vector3(
-                            positionAttribute.getX(b),
-                            positionAttribute.getY(b),
-                            positionAttribute.getZ(b)
-                        );
-                        var vC = new window.THREE.Vector3(
-                            positionAttribute.getX(c),
-                            positionAttribute.getY(c),
-                            positionAttribute.getZ(c)
-                        );
-                        
-                        // Calculate triangle area using cross product
-                        var ab = vB.clone().sub(vA);
-                        var ac = vC.clone().sub(vA);
-                        var triangleArea = ab.cross(ac).length() * 0.5;
-                        totalSurfaceArea += triangleArea;
-                    }
-                } else {
-                    // Non-indexed geometry
-                    for (var i = 0; i < positionAttribute.count; i += 3) {
-                        var vA = new window.THREE.Vector3(
-                            positionAttribute.getX(i),
-                            positionAttribute.getY(i),
-                            positionAttribute.getZ(i)
-                        );
-                        var vB = new window.THREE.Vector3(
-                            positionAttribute.getX(i + 1),
-                            positionAttribute.getY(i + 1),
-                            positionAttribute.getZ(i + 1)
-                        );
-                        var vC = new window.THREE.Vector3(
-                            positionAttribute.getX(i + 2),
-                            positionAttribute.getY(i + 2),
-                            positionAttribute.getZ(i + 2)
-                        );
-                        
-                        // Calculate triangle area using cross product
-                        var ab = vB.clone().sub(vA);
-                        var ac = vC.clone().sub(vA);
-                        var triangleArea = ab.cross(ac).length() * 0.5;
-                        totalSurfaceArea += triangleArea;
-                    }
-                }
-                
-                console.log('Mesh surface area for', canvasId + ':', totalSurfaceArea.toFixed(2), 'square units');
 
                 var positionAttribute = mesh.geometry.getAttribute('position');
                 var totalVertices = positionAttribute.count;
@@ -246,23 +193,25 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 repulsionOffsets = new Float32Array(positions.length);
 
                 var particleGeometry = new window.THREE.BufferGeometry();
-                particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-                particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-
-                var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-                var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+                var posAttr = new window.THREE.Float32BufferAttribute(positions, 3);
+                var colAttr = new window.THREE.Float32BufferAttribute(colors, 3);
+                posAttr.setUsage(window.THREE.DynamicDrawUsage);
+                colAttr.setUsage(window.THREE.DynamicDrawUsage);
+                particleGeometry.setAttribute('position', posAttr);
+                particleGeometry.setAttribute('color', colAttr);
 
                 var particleMaterial = new window.THREE.PointsMaterial({
                     size: 0.7,
                     sizeAttenuation: false,
                     vertexColors: true,
-                    map: texture,
+                    map: getIconParticleTexture(),
                     transparent: true,
                     blending: window.THREE.NormalBlending,
                     depthWrite: false
                 });
 
                 particleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+                particleSystem.frustumCulled = false;
                 scene.add(particleSystem);
 
                 gltf.scene.traverse(function(child) {
@@ -288,6 +237,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
         });
     }
 
+    var __tmpVec = new window.THREE.Vector3();
     function updateMousePosition(event) {
         isMouseOverCanvas = true;
         
@@ -296,7 +246,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
-        var vector = new window.THREE.Vector3(mouse.x, mouse.y, 0);
+        var vector = __tmpVec.set(mouse.x, mouse.y, 0);
         vector.unproject(camera);
         
         var dir = vector.sub(camera.position).normalize();
@@ -326,6 +276,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
             
             if (particleSystem && basePositions) {
                 var positionAttribute = particleSystem.geometry.getAttribute('position');
+                var posArray = positionAttribute.array;
                 var easeSpeed = 0.08;
                 
                 for (var i = 0; i < positionAttribute.count; i++) {
@@ -339,7 +290,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                     if (isMouseOverCanvas) {
                         var dx = baseX - mouseWorldPos.x;
                         var dy = baseY - mouseWorldPos.y;
-                        var distance = Math.sqrt(dx * dx + dy * dy);
+                        var distance = Math.hypot(dx, dy);
                         
                         if (distance < repulsionRadius && distance > 0.1) {
                             var influence = Math.pow(1 - distance / repulsionRadius, 2);
@@ -357,10 +308,12 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                     
                     var finalX = baseX + repulsionOffsets[3 * i];
                     var finalY = baseY + repulsionOffsets[3 * i + 1];
-                    
-                                    positionAttribute.setXYZ(i, finalX, finalY, baseZ);
+                    var idx = 3 * i;
+                    posArray[idx] = finalX;
+                    posArray[idx + 1] = finalY;
+                    posArray[idx + 2] = baseZ;
             }
-            positionAttribute.needsUpdate = true;
+                positionAttribute.needsUpdate = true;
         }
         
         if (particleSystem) {
