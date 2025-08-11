@@ -10,7 +10,7 @@ import { initParticleIcon } from './particle-icons.js';
 
 function animateHeroCTA() {
     const tl = gsap.timeline();
-    
+
     tl.fromTo("#hero .hero-cta",
         { opacity: 0 },
         {
@@ -19,15 +19,15 @@ function animateHeroCTA() {
             ease: "power2.out"
         }
     )
-    .fromTo("#hero .hero-cta",
-        { flexGrow: 0 },
-        {
-            flexGrow: 1,
-            duration: 0.6,
-            ease: "power2.out"
-        }
-    )
-    
+        .fromTo("#hero .hero-cta",
+            { flexGrow: 0 },
+            {
+                flexGrow: 1,
+                duration: 0.6,
+                ease: "power2.out"
+            }
+        )
+
     return tl;
 }
 
@@ -170,6 +170,8 @@ function pageLoadScene() {
 
 function initHero() {
     const heroHeading = document.querySelector("#heroHeading");
+    const homeLoader = document.querySelector(".loader");
+
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
@@ -179,8 +181,24 @@ function initHero() {
         initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
         initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
     ]).then(() => {
+        if (homeLoader) {
+            gsap.set(homeLoader, { display: "flex" });
+            gsap.to(homeLoader, {
+                opacity: 0,
+                duration: 0.8,
+                onComplete: () => homeLoader.remove()
+            });
+        }
         pageLoadScene();
     }).catch(() => {
+        if (homeLoader) {
+            gsap.set(homeLoader, { display: "flex" });
+            gsap.to(homeLoader, {
+                opacity: 0,
+                duration: 0.8,
+                onComplete: () => homeLoader.remove()
+            });
+        }
         pageLoadScene();
     });
 }
