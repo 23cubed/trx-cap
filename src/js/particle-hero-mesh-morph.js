@@ -36,12 +36,12 @@ var ROTATION_CONFIG = {
 };
 
 // Load T-Rex GLTF model and convert to particle system
-function initTRex(scene) {
+function initTRex(scene, assetUrl) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
-        try { console.log('[ParticleMorph] initTRex: start', MESH_CONFIG.TREX.url); } catch (e) {}
+        try { console.log('[ParticleMorph] initTRex: start', assetUrl); } catch (e) {}
         loader.load(
-            MESH_CONFIG.TREX.url,
+            assetUrl,
             function (gltf) {
                 gltf.scene.updateMatrixWorld(true);
                 var mesh = null;
@@ -106,12 +106,12 @@ function initTRex(scene) {
 }
 
 // Load DNA helix GLTF model and convert to particle system
-function initDNAHelix(scene) {
+function initDNAHelix(scene, assetUrl) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
-        try { console.log('[ParticleMorph] initDNA: start', MESH_CONFIG.DNA.url); } catch (e) {}
+        try { console.log('[ParticleMorph] initDNA: start', assetUrl); } catch (e) {}
         loader.load(
-            MESH_CONFIG.DNA.url,
+            assetUrl,
             function (gltf) {
                 gltf.scene.updateMatrixWorld(true);
                 var mesh = null;
@@ -192,6 +192,17 @@ function initParticleHeroMeshMorph() {
 
     var width = window.innerWidth,
         height = window.innerHeight;
+
+    // Resolve asset URLs (allow override via data attributes for Webflow)
+    var trexUrl = canvas.getAttribute('data-trex-url') || MESH_CONFIG.TREX.url;
+    var dnaUrl = canvas.getAttribute('data-dna-url') || MESH_CONFIG.DNA.url;
+    if (typeof trexUrl === 'string' && trexUrl.indexOf('@/') === 0) {
+        try { console.warn('[ParticleMorph] TREX URL uses alias (@/) which may not resolve in Webflow:', trexUrl); } catch (e) {}
+    }
+    if (typeof dnaUrl === 'string' && dnaUrl.indexOf('@/') === 0) {
+        try { console.warn('[ParticleMorph] DNA URL uses alias (@/) which may not resolve in Webflow:', dnaUrl); } catch (e) {}
+    }
+    try { console.log('[ParticleMorph] Resolved URLs', { trexUrl: trexUrl, dnaUrl: dnaUrl }); } catch (e) {}
 
     // Setup Three.js renderer and scene
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -533,7 +544,7 @@ function initParticleHeroMeshMorph() {
     window.addEventListener('mousemove', updateMousePosition);
     window.addEventListener('resize', handleWindowResize);
 
-        initTRex(scene)
+        initTRex(scene, trexUrl)
             .then(function(ps) {
                 if (!ps) {
                     try { console.warn('[ParticleMorph] TRex init returned null'); } catch (e) {}
@@ -546,7 +557,7 @@ function initParticleHeroMeshMorph() {
                 particleSystem = ps;
                 updateDepthBasedColors();
                 try { console.log('[ParticleMorph] TRex ready, particle count', positionAttribute.count); } catch (e) {}
-                return initDNAHelix(scene);
+                return initDNAHelix(scene, dnaUrl);
             })
             .then(function(dnaPs) {
                 if (!dnaPs) {
