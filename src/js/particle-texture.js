@@ -1,4 +1,4 @@
-function InitParticleTexture(imageUrl = 'https://raw.githack.com/23cubed/trx-cap/main/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
+function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
     const canvases = document.querySelectorAll('canvas.particle-texture');
     
     // Global mouse tracking for window-based repulsion

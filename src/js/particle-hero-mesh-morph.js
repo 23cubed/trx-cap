@@ -3,12 +3,12 @@ var MESH_CONFIG = {
     TREX: { 
         x: 170, y: -10, z: 0,
         scale: 155,
-        url: '@/assets/t-rex-250k-uniform.glb'
+        url: 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/t-rex-250k-uniform.glb'
     },
     DNA: { 
         x: 40, y: 0, z: 0,
         scale: 45,
-        url: '@/assets/DNA-20k-uniform.glb'
+        url: 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/DNA-20k-uniform.glb'
     }
 };
 
@@ -193,16 +193,10 @@ function initParticleHeroMeshMorph() {
     var width = window.innerWidth,
         height = window.innerHeight;
 
-    // Resolve asset URLs (allow override via data attributes for Webflow)
-    var trexUrl = canvas.getAttribute('data-trex-url') || MESH_CONFIG.TREX.url;
-    var dnaUrl = canvas.getAttribute('data-dna-url') || MESH_CONFIG.DNA.url;
-    if (typeof trexUrl === 'string' && trexUrl.indexOf('@/') === 0) {
-        try { console.warn('[ParticleMorph] TREX URL uses alias (@/) which may not resolve in Webflow:', trexUrl); } catch (e) {}
-    }
-    if (typeof dnaUrl === 'string' && dnaUrl.indexOf('@/') === 0) {
-        try { console.warn('[ParticleMorph] DNA URL uses alias (@/) which may not resolve in Webflow:', dnaUrl); } catch (e) {}
-    }
-    try { console.log('[ParticleMorph] Resolved URLs', { trexUrl: trexUrl, dnaUrl: dnaUrl }); } catch (e) {}
+    // Resolve asset URLs from config only
+    var trexUrl = MESH_CONFIG.TREX.url;
+    var dnaUrl = MESH_CONFIG.DNA.url;
+    try { console.log('[ParticleMorph] Asset URLs', { trexUrl: trexUrl, dnaUrl: dnaUrl }); } catch (e) {}
 
     // Setup Three.js renderer and scene
     var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
