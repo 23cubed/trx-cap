@@ -8,6 +8,8 @@ import './navbar.js';
 import './page-load.js';
 import './page-transition.js';
 import './particle-hero-mesh-morph.js';
+import './particle-icons.js';
+import './particle-texture.js';
 import './scrolling-gutters.js';
 import './split-text-on-scroll.js';
 import './split-text.js';
@@ -21,12 +23,13 @@ import { initHero, animateHeroCTA } from './hero.js';
 import { initHeader, setScrolled } from './navbar.js';
 import { pageLoader } from './page-load.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
+import { InitParticleTexture } from './particle-texture.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
 import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initFormErrors, animSectionsOnScroll, initHero, animateHeroCTA, initHeader, setScrolled, pageLoader, initParticleHeroMeshMorph, initScrollingGutters, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initFormErrors, animSectionsOnScroll, initHero, animateHeroCTA, initHeader, setScrolled, pageLoader, initParticleHeroMeshMorph, InitParticleTexture, initScrollingGutters, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initFormErrors = initFormErrors;
@@ -37,6 +40,7 @@ window.initHeader = initHeader;
 window.setScrolled = setScrolled;
 window.pageLoader = pageLoader;
 window.initParticleHeroMeshMorph = initParticleHeroMeshMorph;
+window.InitParticleTexture = InitParticleTexture;
 window.initScrollingGutters = initScrollingGutters;
 window.initTextScroll = initTextScroll;
 window.splitTextElement = splitTextElement;
@@ -44,6 +48,6 @@ window.animateSplitText = animateSplitText;
 window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './text-read-more.js', './three-js-module.js']);
-console.log('📅 Updated at 8/10/2025, 8:39:34 PM EST');
-console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initHeader', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './greenSection.js', './hero.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './scrolling-gutters.js', './split-text-on-scroll.js', './split-text.js', './text-read-more.js', './three-js-module.js']);
+console.log('📅 Updated at 8/10/2025, 8:45:25 PM EST');
+console.log('🚀 Functions available for import:', ['initFormErrors', 'animSectionsOnScroll', 'initHero', 'animateHeroCTA', 'initHeader', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'InitParticleTexture', 'initScrollingGutters', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
