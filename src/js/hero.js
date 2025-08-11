@@ -4,6 +4,7 @@
 // Quick test comment for workflow
 // Testing new build in pre-commit
 import { splitTextElement, animateSplitText } from './split-text.js';
+import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 
 function animateHeroCTA() {
     const tl = gsap.timeline();
@@ -170,9 +171,13 @@ function initHero() {
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
-    setTimeout(() => {
-        pageLoadScene();
-    }, 200);
+    initParticleHeroMeshMorph()
+        .then(() => {
+            pageLoadScene();
+        })
+        .catch(() => {
+            pageLoadScene();
+        });
 }
 
 export { initHero, animateHeroCTA };

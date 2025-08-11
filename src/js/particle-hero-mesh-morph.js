@@ -36,140 +36,146 @@ var ROTATION_CONFIG = {
 };
 
 // Load T-Rex GLTF model and convert to particle system
-function initTRex(scene, setParticleSystem) {
-    var loader = new window.GLTFLoader();
+function initTRex(scene) {
+    return new Promise(function(resolve, reject) {
+        var loader = new window.GLTFLoader();
+        loader.load(
+            MESH_CONFIG.TREX.url,
+            function (gltf) {
+                gltf.scene.updateMatrixWorld(true);
+                var mesh = null;
+                gltf.scene.traverse(function(child) {
+                    if (child.isMesh) mesh = child;
+                });
+                if (!mesh) {
+                    resolve(null);
+                    return;
+                }
+                mesh.geometry.scale(MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale);
+                mesh.geometry.rotateY(-Math.PI / 2);
+                mesh.geometry.center();
+                mesh.geometry.computeVertexNormals();
 
-    loader.load(
-        MESH_CONFIG.TREX.url,
-        function (gltf) {
-            gltf.scene.updateMatrixWorld(true);
-        
-            var mesh = null;
-            gltf.scene.traverse(function(child) {
-                if (child.isMesh) mesh = child;
-            });
-            if (!mesh) return;
-            
-            // Transform mesh geometry
-            mesh.geometry.scale(MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale, MESH_CONFIG.TREX.scale);
-            mesh.geometry.rotateY(-Math.PI / 2);
-            mesh.geometry.center();
-            mesh.geometry.computeVertexNormals();
-            
-            // Convert vertices to particle data
-            var positionAttribute = mesh.geometry.getAttribute('position');
-            var numParticles = positionAttribute.count;
-            var positions = new Float32Array(numParticles * 3);
-            var colors = new Float32Array(numParticles * 3);
-            
-            for (var i = 0; i < numParticles; i++) {
-                positions[3 * i]     = positionAttribute.getX(i);
-                positions[3 * i + 1] = positionAttribute.getY(i);
-                positions[3 * i + 2] = positionAttribute.getZ(i);
-                colors[3 * i]     = 1;
-                colors[3 * i + 1] = 1;
-                colors[3 * i + 2] = 1;
+                var positionAttribute = mesh.geometry.getAttribute('position');
+                var numParticles = positionAttribute.count;
+                var positions = new Float32Array(numParticles * 3);
+                var colors = new Float32Array(numParticles * 3);
+
+                for (var i = 0; i < numParticles; i++) {
+                    positions[3 * i]     = positionAttribute.getX(i);
+                    positions[3 * i + 1] = positionAttribute.getY(i);
+                    positions[3 * i + 2] = positionAttribute.getZ(i);
+                    colors[3 * i]     = 1;
+                    colors[3 * i + 1] = 1;
+                    colors[3 * i + 2] = 1;
+                }
+
+                var particleGeometry = new window.THREE.BufferGeometry();
+                particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
+                particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
+
+                var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
+                var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+
+                var particleMaterial = new window.THREE.PointsMaterial({
+                    size: 1.5,
+                    sizeAttenuation: false,
+                    vertexColors: true,
+                    map: texture,
+                    transparent: true,
+                    blending: window.THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+
+                var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+                newParticleSystem.position.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
+
+                scene.add(newParticleSystem);
+                resolve(newParticleSystem);
+            },
+            function () {},
+            function (error) {
+                reject(error);
             }
-
-            var particleGeometry = new window.THREE.BufferGeometry();
-            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-            particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-
-            // Create particle material with dot texture
-            var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-            var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
-
-            var particleMaterial = new window.THREE.PointsMaterial({
-                size: 1.5,
-                sizeAttenuation: false,
-                vertexColors: true,
-                map: texture,
-                transparent: true,
-                blending: window.THREE.AdditiveBlending,
-                depthWrite: false
-            });
-
-            var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-            newParticleSystem.position.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
-
-            scene.add(newParticleSystem);
-            setParticleSystem(newParticleSystem);
-        },
-        function (progress) {
-            // ... existing code ...
-        },
-        function (error) {
-            // ... existing code ...
-        }
-    );
+        );
+    });
 }
 
 // Load DNA helix GLTF model and convert to particle system
-function initDNAHelix(scene, setParticleSystem) {
-    var loader = new window.GLTFLoader();
+function initDNAHelix(scene) {
+    return new Promise(function(resolve, reject) {
+        var loader = new window.GLTFLoader();
+        loader.load(
+            MESH_CONFIG.DNA.url,
+            function (gltf) {
+                gltf.scene.updateMatrixWorld(true);
+                var mesh = null;
+                gltf.scene.traverse(function(child) {
+                    if (child.isMesh) mesh = child;
+                });
+                if (!mesh) {
+                    resolve(null);
+                    return;
+                }
+                mesh.geometry.scale(MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale);
+                mesh.geometry.center();
+                mesh.geometry.computeVertexNormals();
 
-    loader.load(
-        MESH_CONFIG.DNA.url,
-        function (gltf) {
-            gltf.scene.updateMatrixWorld(true);
-        
-            var mesh = null;
-            gltf.scene.traverse(function(child) {
-                if (child.isMesh) mesh = child;
-            });
-            if (!mesh) return;
-            
-            // Transform mesh geometry
-            mesh.geometry.scale(MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale, MESH_CONFIG.DNA.scale);
-            mesh.geometry.center();
-            mesh.geometry.computeVertexNormals(); 
-            
-            // Convert vertices to particle data
-            var positionAttribute = mesh.geometry.getAttribute('position');
-            var numParticles = positionAttribute.count;
-            var positions = new Float32Array(numParticles * 3);
-            var colors = new Float32Array(numParticles * 3);
-            
-            for (var i = 0; i < numParticles; i++) {
-                positions[3 * i]     = positionAttribute.getX(i);
-                positions[3 * i + 1] = positionAttribute.getY(i);
-                positions[3 * i + 2] = positionAttribute.getZ(i);
-                colors[3 * i]     = 1;
-                colors[3 * i + 1] = 1;
-                colors[3 * i + 2] = 1;
+                var positionAttribute = mesh.geometry.getAttribute('position');
+                var numParticles = positionAttribute.count;
+                var positions = new Float32Array(numParticles * 3);
+                var colors = new Float32Array(numParticles * 3);
+
+                for (var i = 0; i < numParticles; i++) {
+                    positions[3 * i]     = positionAttribute.getX(i);
+                    positions[3 * i + 1] = positionAttribute.getY(i);
+                    positions[3 * i + 2] = positionAttribute.getZ(i);
+                    colors[3 * i]     = 1;
+                    colors[3 * i + 1] = 1;
+                    colors[3 * i + 2] = 1;
+                }
+
+                var particleGeometry = new window.THREE.BufferGeometry();
+                particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
+                particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
+
+                var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
+                var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+
+                var particleMaterial = new window.THREE.PointsMaterial({
+                    size: 3,
+                    sizeAttenuation: false,
+                    vertexColors: true,
+                    map: texture,
+                    transparent: true,
+                    blending: window.THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+
+                var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
+                newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
+
+                resolve(newParticleSystem);
+            },
+            function () {},
+            function (error) {
+                reject(error);
             }
-
-            var particleGeometry = new window.THREE.BufferGeometry();
-            particleGeometry.setAttribute('position', new window.THREE.Float32BufferAttribute(positions, 3));
-            particleGeometry.setAttribute('color', new window.THREE.Float32BufferAttribute(colors, 3));
-
-            var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
-            var texture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
-
-            var particleMaterial = new window.THREE.PointsMaterial({
-                size: 3,
-                sizeAttenuation: false,
-                vertexColors: true,
-                map: texture,
-                transparent: true,
-                blending: window.THREE.AdditiveBlending,
-                depthWrite: false
-            });
-
-            var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
-            newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
-
-            setParticleSystem(newParticleSystem);
-        }
-    );
+        );
+    });
 }
 
     // Main particle field setup and animation
+var particleInitPromise = null;
+
 function initParticleHeroMeshMorph() {
-    var canvas = document.querySelector('#texture-canvas');
-    if (!canvas) {
-        return;
-    }
+    if (particleInitPromise) return particleInitPromise;
+    particleInitPromise = new Promise(function(resolve) {
+        var canvas = document.querySelector('#texture-canvas');
+        if (!canvas) {
+            resolve(false);
+            return;
+        }
 
     var width = window.innerWidth,
         height = window.innerHeight;
@@ -512,37 +518,44 @@ function initParticleHeroMeshMorph() {
     window.addEventListener('mousemove', updateMousePosition);
     window.addEventListener('resize', handleWindowResize);
 
-    // Initialize particle systems
-    initTRex(scene, function(ps) {
-        var positionAttribute = ps.geometry.getAttribute('position');
-        tRexPositions = new Float32Array(positionAttribute.array);
-        repulsionOffsets = new Float32Array(positionAttribute.array.length);
-        
-        if (!particleSystem) {
-            particleSystem = ps;
-            scene.add(particleSystem);
-            updateDepthBasedColors();
-        }
-        
-        initDNAHelix(scene, function(dnaPs) {
-            var dnaPositionAttribute = dnaPs.geometry.getAttribute('position');
-            
-            var tRexParticleCount = tRexPositions.length / 3;
-            var dnaParticleCount = dnaPositionAttribute.count;
-            
-            dnaPositions = new Float32Array(tRexPositions.length);
-            
-            for (var i = 0; i < tRexParticleCount; i++) {
-                var dnaIndex = i % dnaParticleCount;
-                dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
-                dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
-                dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
-            }
-            
-            dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
-            initMorphTimeline();
-        });
+        // Initialize particle systems
+        initTRex(scene)
+            .then(function(ps) {
+                if (!ps) {
+                    resolve(false);
+                    return null;
+                }
+                var positionAttribute = ps.geometry.getAttribute('position');
+                tRexPositions = new Float32Array(positionAttribute.array);
+                repulsionOffsets = new Float32Array(positionAttribute.array.length);
+                particleSystem = ps;
+                updateDepthBasedColors();
+                return initDNAHelix(scene);
+            })
+            .then(function(dnaPs) {
+                if (!dnaPs) {
+                    resolve(false);
+                    return;
+                }
+                var dnaPositionAttribute = dnaPs.geometry.getAttribute('position');
+                var tRexParticleCount = tRexPositions.length / 3;
+                var dnaParticleCount = dnaPositionAttribute.count;
+                dnaPositions = new Float32Array(tRexPositions.length);
+                for (var i = 0; i < tRexParticleCount; i++) {
+                    var dnaIndex = i % dnaParticleCount;
+                    dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
+                    dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
+                    dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
+                }
+                dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
+                initMorphTimeline();
+                resolve(true);
+            })
+            .catch(function() {
+                resolve(false);
+            });
     });
+    return particleInitPromise;
 }
 
 export { initParticleHeroMeshMorph };
