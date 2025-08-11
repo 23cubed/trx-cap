@@ -54,7 +54,7 @@ barba.init({
         const isHome = data.next.namespace == 'home';
         if (isHome) {
           initNavbar();
-          initScrollingGutters();
+          //initScrollingGutters();
         }
         if (data.next.namespace == 'contact') {
           initFormErrors();
