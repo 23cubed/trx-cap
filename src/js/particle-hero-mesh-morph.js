@@ -39,6 +39,7 @@ var ROTATION_CONFIG = {
 function initTRex(scene) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
+        try { console.log('[ParticleMorph] initTRex: start', MESH_CONFIG.TREX.url); } catch (e) {}
         loader.load(
             MESH_CONFIG.TREX.url,
             function (gltf) {
@@ -48,6 +49,7 @@ function initTRex(scene) {
                     if (child.isMesh) mesh = child;
                 });
                 if (!mesh) {
+                    try { console.warn('[ParticleMorph] initTRex: no mesh found'); } catch (e) {}
                     resolve(null);
                     return;
                 }
@@ -91,10 +93,12 @@ function initTRex(scene) {
                 newParticleSystem.position.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
 
                 scene.add(newParticleSystem);
+                try { console.log('[ParticleMorph] initTRex: created Points with', numParticles, 'particles'); } catch (e) {}
                 resolve(newParticleSystem);
             },
             function () {},
             function (error) {
+                try { console.error('[ParticleMorph] initTRex: error', error); } catch (e) {}
                 reject(error);
             }
         );
@@ -105,6 +109,7 @@ function initTRex(scene) {
 function initDNAHelix(scene) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
+        try { console.log('[ParticleMorph] initDNA: start', MESH_CONFIG.DNA.url); } catch (e) {}
         loader.load(
             MESH_CONFIG.DNA.url,
             function (gltf) {
@@ -114,6 +119,7 @@ function initDNAHelix(scene) {
                     if (child.isMesh) mesh = child;
                 });
                 if (!mesh) {
+                    try { console.warn('[ParticleMorph] initDNA: no mesh found'); } catch (e) {}
                     resolve(null);
                     return;
                 }
@@ -155,10 +161,12 @@ function initDNAHelix(scene) {
                 var newParticleSystem = new window.THREE.Points(particleGeometry, particleMaterial);
                 newParticleSystem.position.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
 
+                try { console.log('[ParticleMorph] initDNA: created Points with', numParticles, 'particles'); } catch (e) {}
                 resolve(newParticleSystem);
             },
             function () {},
             function (error) {
+                try { console.error('[ParticleMorph] initDNA: error', error); } catch (e) {}
                 reject(error);
             }
         );
@@ -169,10 +177,15 @@ function initDNAHelix(scene) {
 var particleInitPromise = null;
 
 function initParticleHeroMeshMorph() {
-    if (particleInitPromise) return particleInitPromise;
+    if (particleInitPromise) {
+        try { console.log('[ParticleMorph] initParticleHeroMeshMorph: using existing promise'); } catch (e) {}
+        return particleInitPromise;
+    }
     particleInitPromise = new Promise(function(resolve) {
+        try { console.log('[ParticleMorph] initParticleHeroMeshMorph: begin'); } catch (e) {}
         var canvas = document.querySelector('#texture-canvas');
         if (!canvas) {
+            try { console.warn('[ParticleMorph] initParticleHeroMeshMorph: #texture-canvas not found'); } catch (e) {}
             resolve(false);
             return;
         }
@@ -185,10 +198,12 @@ function initParticleHeroMeshMorph() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
+    try { console.log('[ParticleMorph] renderer initialized', { width: width, height: height, pixelRatio: window.devicePixelRatio }); } catch (e) {}
 
     var scene = new window.THREE.Scene();
     var camera = new window.THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
     camera.position.set(0, 0, 80);
+    try { console.log('[ParticleMorph] scene and camera ready'); } catch (e) {}
 
     // State variables
     var particleSystem = null;
@@ -518,10 +533,10 @@ function initParticleHeroMeshMorph() {
     window.addEventListener('mousemove', updateMousePosition);
     window.addEventListener('resize', handleWindowResize);
 
-        // Initialize particle systems
         initTRex(scene)
             .then(function(ps) {
                 if (!ps) {
+                    try { console.warn('[ParticleMorph] TRex init returned null'); } catch (e) {}
                     resolve(false);
                     return null;
                 }
@@ -530,10 +545,12 @@ function initParticleHeroMeshMorph() {
                 repulsionOffsets = new Float32Array(positionAttribute.array.length);
                 particleSystem = ps;
                 updateDepthBasedColors();
+                try { console.log('[ParticleMorph] TRex ready, particle count', positionAttribute.count); } catch (e) {}
                 return initDNAHelix(scene);
             })
             .then(function(dnaPs) {
                 if (!dnaPs) {
+                    try { console.warn('[ParticleMorph] DNA init returned null'); } catch (e) {}
                     resolve(false);
                     return;
                 }
@@ -549,9 +566,12 @@ function initParticleHeroMeshMorph() {
                 }
                 dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
                 initMorphTimeline();
+                try { console.log('[ParticleMorph] DNA mapped to TRex particle count', tRexParticleCount); } catch (e) {}
+                try { console.log('[ParticleMorph] resolve ready'); } catch (e) {}
                 resolve(true);
             })
-            .catch(function() {
+            .catch(function(err) {
+                try { console.error('[ParticleMorph] init error', err); } catch (e) {}
                 resolve(false);
             });
     });
