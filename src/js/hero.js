@@ -184,8 +184,7 @@ function initHero() {
         if (homeLoader) {
             gsap.set(homeLoader, { display: "flex" });
             gsap.to(homeLoader, {
-                opacity: 0,
-                duration: 0.8,
+                duration: 1,
                 onComplete: () => homeLoader.remove()
             });
         }
@@ -194,8 +193,7 @@ function initHero() {
         if (homeLoader) {
             gsap.set(homeLoader, { display: "flex" });
             gsap.to(homeLoader, {
-                opacity: 0,
-                duration: 0.8,
+                duration: 1,
                 onComplete: () => homeLoader.remove()
             });
         }
