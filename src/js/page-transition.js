@@ -1,4 +1,4 @@
-import { setScrolled, initHeader } from './navbar.js';
+import { setScrolled, initNavbar } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
 import { initScrollingGutters } from './scrolling-gutters.js';
@@ -45,7 +45,7 @@ barba.init({
           setScrolled();
         }
         if (data.next.namespace == 'home') {
-          initHeader();
+          initNavbar();
           initScrollingGutters();
         }
         if (data.next.namespace == 'contact') {
