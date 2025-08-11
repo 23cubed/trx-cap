@@ -171,14 +171,11 @@ function initHero() {
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
-    try { console.log('[Hero] initHero: waiting for particle readiness'); } catch (e) {}
     initParticleHeroMeshMorph()
         .then(() => {
-            try { console.log('[Hero] particle ready → start pageLoadScene'); } catch (e) {}
             pageLoadScene();
         })
         .catch(() => {
-            try { console.warn('[Hero] particle init failed or skipped → start pageLoadScene'); } catch (e) {}
             pageLoadScene();
         });
 }
