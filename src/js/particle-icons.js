@@ -380,3 +380,5 @@ function initParticleIconCard(canvasId, particleColor, maxParticles, useMeshSamp
 
     loadMeshAndCreateParticles();
 }
+
+export { initParticleIconCard };
