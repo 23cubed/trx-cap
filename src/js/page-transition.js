@@ -78,6 +78,11 @@ barba.init({
             }
           })
             .set(data.next.container, { display: 'block' })
+            .call(() => {
+              if (window.Webflow && window.Webflow.require) {
+                window.Webflow.require('ix2').init();
+              }
+            })
             .call(() => ScrollTrigger.refresh())
             .to('.transition-v2', {
               top: `-${cornerRadiusValue * 1.5}rem`,
