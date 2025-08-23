@@ -88,8 +88,10 @@ barba.init({
             return new Promise((resolve) => {
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                  try { InitParticleTexture(); } catch (e) {}
-                  resolve();
+                  setTimeout(() => {
+                    try { InitParticleTexture(); } catch (e) {}
+                    resolve();
+                  }, 100);
                 });
               });
             });
