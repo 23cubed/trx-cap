@@ -8,6 +8,93 @@ function getIconParticleTexture() {
     return __ICON_PARTICLE_TEXTURE;
 }
 
+function calculateMeshSurfaceArea(geometry) {
+    var positionAttribute = geometry.getAttribute('position');
+    var indexAttribute = geometry.getIndex();
+    var totalArea = 0;
+    
+    var triangle = new window.THREE.Triangle();
+    var v1 = new window.THREE.Vector3();
+    var v2 = new window.THREE.Vector3();
+    var v3 = new window.THREE.Vector3();
+    var v4 = new window.THREE.Vector3();
+    
+    if (indexAttribute) {
+        // Indexed geometry - check if it's quads or triangles
+        var faceSize = indexAttribute.count % 4 === 0 ? 4 : 3;
+        
+        if (faceSize === 4) {
+            // Quad mesh - split each quad into two triangles
+            for (var i = 0; i < indexAttribute.count; i += 4) {
+                var a = indexAttribute.getX(i);
+                var b = indexAttribute.getX(i + 1);
+                var c = indexAttribute.getX(i + 2);
+                var d = indexAttribute.getX(i + 3);
+                
+                v1.fromBufferAttribute(positionAttribute, a);
+                v2.fromBufferAttribute(positionAttribute, b);
+                v3.fromBufferAttribute(positionAttribute, c);
+                v4.fromBufferAttribute(positionAttribute, d);
+                
+                // First triangle: A-B-C
+                triangle.set(v1, v2, v3);
+                totalArea += triangle.getArea();
+                
+                // Second triangle: A-C-D
+                triangle.set(v1, v3, v4);
+                totalArea += triangle.getArea();
+            }
+        } else {
+            // Triangle mesh
+            for (var i = 0; i < indexAttribute.count; i += 3) {
+                var a = indexAttribute.getX(i);
+                var b = indexAttribute.getX(i + 1);
+                var c = indexAttribute.getX(i + 2);
+                
+                v1.fromBufferAttribute(positionAttribute, a);
+                v2.fromBufferAttribute(positionAttribute, b);
+                v3.fromBufferAttribute(positionAttribute, c);
+                
+                triangle.set(v1, v2, v3);
+                totalArea += triangle.getArea();
+            }
+        }
+    } else {
+        // Non-indexed geometry - check if it's quads or triangles
+        var faceSize = positionAttribute.count % 4 === 0 ? 4 : 3;
+        
+        if (faceSize === 4) {
+            // Quad mesh - split each quad into two triangles
+            for (var i = 0; i < positionAttribute.count; i += 4) {
+                v1.fromBufferAttribute(positionAttribute, i);
+                v2.fromBufferAttribute(positionAttribute, i + 1);
+                v3.fromBufferAttribute(positionAttribute, i + 2);
+                v4.fromBufferAttribute(positionAttribute, i + 3);
+                
+                // First triangle: 0-1-2
+                triangle.set(v1, v2, v3);
+                totalArea += triangle.getArea();
+                
+                // Second triangle: 0-2-3
+                triangle.set(v1, v3, v4);
+                totalArea += triangle.getArea();
+            }
+        } else {
+            // Triangle mesh
+            for (var i = 0; i < positionAttribute.count; i += 3) {
+                v1.fromBufferAttribute(positionAttribute, i);
+                v2.fromBufferAttribute(positionAttribute, i + 1);
+                v3.fromBufferAttribute(positionAttribute, i + 2);
+                
+                triangle.set(v1, v2, v3);
+                totalArea += triangle.getArea();
+            }
+        }
+    }
+    
+    return totalArea;
+}
+
 function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) {
     var canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -76,6 +163,10 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 mesh.geometry.scale(meshScale, meshScale, meshScale);
                 
                 mesh.geometry.computeVertexNormals();
+
+                // Calculate and log surface area
+                var surfaceArea = calculateMeshSurfaceArea(mesh.geometry);
+                console.log('Surface area for mesh "' + meshUrl + '":', surfaceArea);
 
                 var positionAttribute = mesh.geometry.getAttribute('position');
                 var totalVertices = positionAttribute.count;
