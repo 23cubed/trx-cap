@@ -102,6 +102,11 @@ function waitForSteppedCounterCompletion(pauseMs) {
         var v = parseInt(counter.getAttribute('data-step-interval'), 10);
         return Number.isFinite(v) && v > 0 ? v : 16;
     };
+    var getStepValue = function() {
+        if (!counter) return 1;
+        var v = parseInt(counter.getAttribute('data-step'), 10);
+        return Number.isFinite(v) && v > 0 ? v : 1;
+    };
     var updateCounter = function(val) { if (counter) counter.textContent = String(val) + '%'; };
     updateCounter(0);
     return new Promise(function(resolve) {
@@ -120,7 +125,7 @@ function waitForSteppedCounterCompletion(pauseMs) {
             if (stepTimer) return;
             stepTimer = setInterval(function() {
                 if (displayedPercent < targetPercent) {
-                    displayedPercent += 1;
+                    displayedPercent = Math.min(targetPercent, displayedPercent + getStepValue());
                     updateCounter(displayedPercent);
                     if (displayedPercent >= 100) {
                         clearInterval(stepTimer);
