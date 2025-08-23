@@ -70,7 +70,6 @@ barba.init({
 
         const waitForParticles = isHome
           ? Promise.allSettled([
-              initParticleHeroMeshMorph(),
               initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
               initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
             ])
@@ -89,8 +88,9 @@ barba.init({
             }
           })
             .set(data.next.container, { display: 'block' })
-            .call(() => { try { if (isHome) { console.debug('[barba] calling InitParticleTexture'); InitParticleTexture(); } } catch (e) {} })
-            .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
+            .call(() => { try { if (document.querySelector('canvas.particle-texture')) InitParticleTexture(); } catch (e) {} })
+            .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph())); } catch (e) {} })
+            .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
             .call(() => {
               if (window.Webflow && window.Webflow.require) {
                 window.Webflow.require('ix2').init();
