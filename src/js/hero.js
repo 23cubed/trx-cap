@@ -7,6 +7,7 @@ import { splitTextElement, animateSplitText } from './split-text.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon } from './particle-icons.js';
+import { resetLoaderProgress, subscribeToLoaderProgress } from './loader-progress.js';
 
 function animateHeroCTA() {
     const tl = gsap.timeline();
@@ -37,17 +38,8 @@ function pageLoadScene() {
     const cornerRadiusValue = computedStyle.getPropertyValue('--block-system--corner-radius').trim();
     const negativeCornerRadius = `-${cornerRadiusValue}`;
 
-    tl.addLabel("pageLoader", 0)
-        .addLabel("heroAnimate", 0.4)
-        .addLabel("heroContentAnimate", 0.75)
-        .to(".page-loader", {
-            opacity: 0,
-            duration: 0.8,
-            ease: "power4.out",
-            onComplete: () => {
-                gsap.set(".page-loader", { visibility: "hidden" });
-            }
-        }, "pageLoader")
+    tl.addLabel("heroAnimate", 0)
+        .addLabel("heroContentAnimate", 0.35)
 
         .fromTo("#heroBG",
             {
@@ -171,14 +163,7 @@ function pageLoadScene() {
 function showLoader() {
     const counter = document.querySelector('.counter');
     gsap.set(".loader", { display: "flex", autoAlpha: 1 });
-    return gsap.to({ val: 0 }, {
-        val: 100,
-        duration: 3,
-        ease: "power1.inOut",
-        onUpdate: function () {
-            counter.textContent = `${Math.round(this.targets()[0].val)}%`;
-        }
-    }).then();
+    if (counter) counter.textContent = `0%`;
 }
 
 function hideLoader() {
@@ -199,17 +184,35 @@ function initHero() {
     if (heroHeading) {
         splitTextElement(heroHeading);
     }
-    Promise.allSettled([
+
+    resetLoaderProgress();
+    showLoader();
+
+    const counter = document.querySelector('.counter');
+    let sawAnyResource = false;
+    const bytesDonePromise = new Promise((resolve) => {
+        const unsubscribe = subscribeToLoaderProgress((percent) => {
+            sawAnyResource = true;
+            if (counter) counter.textContent = `${percent}%`;
+            if (percent >= 100) {
+                unsubscribe();
+                resolve();
+            }
+        });
+        setTimeout(() => { if (!sawAnyResource) { unsubscribe(); resolve(); } }, 50);
+    });
+
+    const initPromises = Promise.allSettled([
         initParticleHeroMeshMorph(),
         InitParticleTexture(),
         initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
         initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
-    ]).then(() => {
-        showLoader()
-        .then(() => hideLoader())
-        .then(() => pageLoadScene());
+    ]);
+
+    Promise.all([bytesDonePromise, initPromises]).then(() => {
+        hideLoader().then(() => pageLoadScene());
     }).catch(() => {
-        pageLoadScene();
+        hideLoader().then(() => pageLoadScene());
     });
 }
 

@@ -1,4 +1,5 @@
 // Mesh configuration - single source of truth
+import { beginResource, updateResourceProgress, endResource } from './loader-progress.js';
 var MESH_CONFIG = {
     TREX: { 
         x: 170, y: -10, z: 0,
@@ -57,9 +58,11 @@ var ROTATION_CONFIG = {
 function initTRex(scene, assetUrl) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
+        beginResource(assetUrl);
         loader.load(
             assetUrl,
             function (gltf) {
+                endResource(assetUrl);
                 gltf.scene.updateMatrixWorld(true);
                 var mesh = null;
                 gltf.scene.traverse(function(child) {
@@ -123,8 +126,9 @@ function initTRex(scene, assetUrl) {
                 } catch (e) {}
                 resolve(newParticleSystem);
             },
-            function () {},
+            function (e) { updateResourceProgress(assetUrl, e && e.loaded, e && e.total, e && e.lengthComputable); },
             function (error) {
+                endResource(assetUrl);
                 reject(error);
             }
         );
@@ -135,9 +139,11 @@ function initTRex(scene, assetUrl) {
 function initDNAHelix(scene, assetUrl) {
     return new Promise(function(resolve, reject) {
         var loader = new window.GLTFLoader();
+        beginResource(assetUrl);
         loader.load(
             assetUrl,
             function (gltf) {
+                endResource(assetUrl);
                 gltf.scene.updateMatrixWorld(true);
                 var mesh = null;
                 gltf.scene.traverse(function(child) {
@@ -199,8 +205,9 @@ function initDNAHelix(scene, assetUrl) {
                 } catch (e) {}
                 resolve(newParticleSystem);
             },
-            function () {},
+            function (e) { updateResourceProgress(assetUrl, e && e.loaded, e && e.total, e && e.lengthComputable); },
             function (error) {
+                endResource(assetUrl);
                 reject(error);
             }
         );
