@@ -106,9 +106,14 @@ barba.init({
               .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph())); } catch (e) {} })
               .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
               .call(() => {
-                if (window.Webflow && window.Webflow.require) {
-                  window.Webflow.require('ix2').init();
-                }
+                try {
+                  const wf = window.Webflow;
+                  if (wf && typeof wf.destroy === 'function') wf.destroy();
+                  if (wf && typeof wf.ready === 'function') wf.ready();
+                  const ix2 = wf && wf.require ? wf.require('ix2') : null;
+                  if (ix2 && typeof ix2.init === 'function') ix2.init();
+                  document.dispatchEvent(new Event('readystatechange'));
+                } catch (e) {}
               })
               .call(() => ScrollTrigger.refresh())
               .to('.transition-v2', {
