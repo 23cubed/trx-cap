@@ -91,7 +91,7 @@ barba.init({
                   setTimeout(() => {
                     try { InitParticleTexture(); } catch (e) {}
                     resolve();
-                  }, 100);
+                  }, 200);
                 });
               });
             });
