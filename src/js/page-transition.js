@@ -8,6 +8,22 @@ import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
 
+// Store target hash for cross-page anchor navigation
+let targetHash = '';
+
+// Handle anchor links to other pages
+document.addEventListener('click', (event) => {
+  const target = event.target.closest('a[href*="#"]');
+  if (target) {
+    const href = target.getAttribute('href');
+    const [url, hash] = href.split('#');
+    // Store hash for cross-page navigation (when URL is different from current path or starts with /)
+    if (hash && url && (url !== window.location.pathname || url.startsWith('/'))) {
+      targetHash = hash;
+    }
+  }
+});
+
 barba.init({
     transitions: [{
       leave(data) {
@@ -41,9 +57,18 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
-        const anchorId = (data && data.next && data.next.url && data.next.url.hash)
-          ? data.next.url.hash
-          : (window.location.hash ? window.location.hash.replace('#','') : '');
+        // Prioritize stored targetHash from cross-page navigation, then fallback to URL hash
+        const anchorId = targetHash 
+          ? targetHash
+          : (data && data.next && data.next.url && data.next.url.hash)
+            ? data.next.url.hash
+            : (window.location.hash ? window.location.hash.replace('#','') : '');
+        
+        // Clear the stored hash after using it
+        if (targetHash) {
+          targetHash = '';
+        }
+        
         if (!anchorId) {
           window.scrollTo(0, 0);
         }
