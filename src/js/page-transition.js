@@ -4,8 +4,9 @@ import { animateHeroCTA } from './hero.js';
 import { initScrollingGutters } from '../exclude/scrolling-gutters.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
-import { initParticleIcon } from './particle-icons.js';
+import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
+import { disposeParticleTexture } from './particle-texture.js';
 
 barba.init({
     transitions: [{
@@ -15,6 +16,8 @@ barba.init({
         gsap.killTweensOf("*");
         // Clean up morph renderer/listeners before DOM is swapped
         try { disposeParticleHeroMeshMorph(); } catch (e) {}
+        try { disposeParticleTexture(); } catch (e) {}
+        try { disposeParticleIcons(); } catch (e) {}
         
         return gsap.timeline()
           .set('.transition-cover', { display: 'block' })
@@ -73,7 +76,6 @@ barba.init({
         const waitForParticles = isHome
           ? Promise.allSettled([
               initParticleHeroMeshMorph(),
-              InitParticleTexture(),
               initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
               initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
             ]).then((r) => { console.log('[barba] enter:particles_settled', r); return r; })
@@ -96,6 +98,7 @@ barba.init({
             }
           })
             .set(data.next.container, { display: 'block' })
+            .call(() => { try { if (isHome) InitParticleTexture(); } catch (e) { console.error('[barba] enter:InitParticleTexture error', e); } })
             .call(() => {
               if (window.Webflow && window.Webflow.require) {
                 window.Webflow.require('ix2').init();

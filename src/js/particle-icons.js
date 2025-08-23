@@ -1,5 +1,6 @@
 // Cache a reusable particle sprite texture
 var __ICON_PARTICLE_TEXTURE = null;
+var __ICON_RENDERERS = new Set();
 function getIconParticleTexture() {
     if (!__ICON_PARTICLE_TEXTURE) {
         var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
@@ -28,6 +29,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
+    __ICON_RENDERERS.add(renderer);
     
     canvas.style.backgroundColor = 'transparent';
 
@@ -345,3 +347,13 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
 }
 
 export { initParticleIcon };
+export function disposeParticleIcons() {
+    try {
+        __ICON_RENDERERS.forEach(function(r) {
+            try { r.setAnimationLoop(null); } catch (e) {}
+            try { if (r.forceContextLoss) r.forceContextLoss(); } catch (e) {}
+            try { r.dispose(); } catch (e) {}
+        });
+    } catch (e) {}
+    __ICON_RENDERERS.clear();
+}
