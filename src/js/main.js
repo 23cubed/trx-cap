@@ -20,14 +20,14 @@ import { initHero, animateHeroCTA } from './hero.js';
 import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion } from './loader-progress.js';
 import { initNavbar, setScrolled } from './navbar.js';
 import { pageLoader } from './page-load.js';
-import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
+import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { initParticleIcon } from './particle-icons.js';
 import { InitParticleTexture, disposeParticleTexture } from './particle-texture.js';
 import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initFormErrors, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initFormErrors, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initFormErrors = initFormErrors;
@@ -48,6 +48,7 @@ window.setScrolled = setScrolled;
 window.pageLoader = pageLoader;
 window.initParticleHeroMeshMorph = initParticleHeroMeshMorph;
 window.disposeParticleHeroMeshMorph = disposeParticleHeroMeshMorph;
+window.pauseParticleHeroMeshMorph = pauseParticleHeroMeshMorph;
 window.initParticleIcon = initParticleIcon;
 window.InitParticleTexture = InitParticleTexture;
 window.disposeParticleTexture = disposeParticleTexture;
@@ -58,5 +59,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './hero.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 8/22/2025, 10:41:03 PM EST');
-console.log('🚀 Functions available for import:', ['initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('📅 Updated at 8/22/2025, 10:52:04 PM EST');
+console.log('🚀 Functions available for import:', ['initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);

@@ -28,7 +28,10 @@ var morphState = {
     renderer: null,
     canvas: null,
     mouseHandler: null,
-    resizeHandler: null
+    resizeHandler: null,
+    renderLoop: null,
+    initialized: false,
+    paused: false
 };
 
 // Repulsion effect configuration
@@ -227,6 +230,14 @@ function initParticleHeroMeshMorph() {
             resolve(false);
             return;
         }
+        // If already initialized on the same canvas, just resume and exit
+        if (morphState.renderer && morphState.canvas === canvas && morphState.initialized) {
+            try { canvas.style.display = 'block'; } catch (e) {}
+            try { if (morphState.renderLoop) morphState.renderer.setAnimationLoop(morphState.renderLoop); } catch (e) {}
+            morphState.paused = false;
+            resolve(true);
+            return;
+        }
 
     var width = window.innerWidth,
         height = window.innerHeight;
@@ -330,7 +341,7 @@ function initParticleHeroMeshMorph() {
     var tRexWorldPos = new window.THREE.Vector3();
 
     // Animation loop
-    renderer.setAnimationLoop(function() {
+    function renderLoop() {
         if (resizeRendererToDisplaySize(renderer)) {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -444,7 +455,9 @@ function initParticleHeroMeshMorph() {
         }
         
         renderer.render(scene, camera);
-    });
+    }
+    renderer.setAnimationLoop(renderLoop);
+    morphState.renderLoop = renderLoop;
 
     // Setup lighting
     var ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
@@ -615,6 +628,9 @@ function initParticleHeroMeshMorph() {
                 }
                 dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
                 initMorphTimeline();
+                morphState.initialized = true;
+                morphState.paused = false;
+                try { canvas.setAttribute('data-morph-initialized', '1'); } catch (e) {}
                 resolve(true);
             })
             .catch(function(err) {
@@ -622,6 +638,16 @@ function initParticleHeroMeshMorph() {
             });
     });
     return particleInitPromise;
+}
+
+function pauseParticleHeroMeshMorph() {
+    if (morphState.renderer) {
+        try { morphState.renderer.setAnimationLoop(null); } catch (e) {}
+    }
+    if (morphState.canvas) {
+        try { morphState.canvas.style.display = 'none'; } catch (e) {}
+    }
+    morphState.paused = true;
 }
 
 function disposeParticleHeroMeshMorph() {
@@ -638,4 +664,4 @@ function disposeParticleHeroMeshMorph() {
     particleInitPromise = null;
 }
 
-export { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph };
+export { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph };
