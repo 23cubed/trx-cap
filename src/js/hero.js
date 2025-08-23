@@ -213,7 +213,7 @@ function initHero() {
                         tryResolve();
                     }
                 }
-            }, 16);
+            }, 6);
         };
         const unsubscribe = subscribeToLoaderProgress((percent) => {
             sawAnyResource = true;
