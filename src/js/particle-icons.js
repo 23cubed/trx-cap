@@ -17,6 +17,10 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
         return Promise.resolve(false);
     }
 
+    if (canvas.getAttribute('data-icon-initialized') === '1') {
+        return Promise.resolve(true);
+    }
+
     var meshUrl = canvas.getAttribute('data-mesh-url');
     if (!meshUrl) {
         return Promise.resolve(false);
@@ -232,6 +236,8 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                     }
                 });
 
+                // mark initialized for persistence checks
+                try { canvas.setAttribute('data-icon-initialized', '1'); } catch (e) {}
                 startRenderLoop();
                 resolve(true);
             },

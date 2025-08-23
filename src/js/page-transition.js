@@ -99,6 +99,7 @@ barba.init({
           })
             .set(data.next.container, { display: 'block' })
             .call(() => { try { if (isHome) InitParticleTexture(); } catch (e) { console.error('[barba] enter:InitParticleTexture error', e); } })
+            .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
             .call(() => {
               if (window.Webflow && window.Webflow.require) {
                 window.Webflow.require('ix2').init();

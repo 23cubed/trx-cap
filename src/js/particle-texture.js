@@ -1,5 +1,6 @@
 import { beginResource, updateResourceProgress, endResource } from './loader-progress.js';
 var __particleTextureRenderers = new Set();
+var __particleTextureInitOnce = false;
 function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
     const canvases = document.querySelectorAll('canvas.particle-texture');
     const initPromises = [];
@@ -16,6 +17,10 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
     if (!window.__particleTextureMouseListenerRegistered) {
         window.addEventListener('mousemove', updateWindowMousePosition);
         window.__particleTextureMouseListenerRegistered = true;
+    }
+
+    if (__particleTextureInitOnce && canvases.length > 0) {
+        return Promise.resolve(true);
     }
 
     canvases.forEach(canvas => {
@@ -45,6 +50,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 preserveDrawingBuffer: false
             });
             __particleTextureRenderers.add(renderer);
+            try { canvas.setAttribute('data-texture-initialized', '1'); } catch (e) {}
             renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
             renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
             renderer.setClearColor(0x000000, 0);
@@ -418,7 +424,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
     if (initPromises.length === 0) {
         return Promise.resolve(false);
     }
-    return Promise.allSettled(initPromises).then(() => true);
+    return Promise.allSettled(initPromises).then(() => { __particleTextureInitOnce = true; return true; });
 }
 
 function disposeParticleTexture() {
