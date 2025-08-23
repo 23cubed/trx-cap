@@ -165,8 +165,9 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 mesh.geometry.computeVertexNormals();
 
                 // Calculate and log surface area
+                var originalVertexCount = mesh.geometry.getAttribute('position').count;
                 var surfaceArea = calculateMeshSurfaceArea(mesh.geometry);
-                console.log('Surface area for mesh "' + meshUrl + '":', surfaceArea);
+                console.log('Mesh "' + meshUrl + '" - Original vertices:', originalVertexCount, ', Surface area:', surfaceArea);
 
                 var positionAttribute = mesh.geometry.getAttribute('position');
                 var totalVertices = positionAttribute.count;
