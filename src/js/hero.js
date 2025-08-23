@@ -190,13 +190,37 @@ function initHero() {
 
     const counter = document.querySelector('.counter');
     let sawAnyResource = false;
+    let targetPercent = 0;
+    let displayedPercent = 0;
+    let stepTimer = null;
+    const updateCounter = (val) => { if (counter) counter.textContent = `${val}%`; };
+    updateCounter(0);
     const bytesDonePromise = new Promise((resolve) => {
+        const tryResolve = () => {
+            if (displayedPercent >= 100 && targetPercent >= 100) {
+                setTimeout(() => resolve(), 250);
+            }
+        };
+        const startStepper = () => {
+            if (stepTimer) return;
+            stepTimer = setInterval(() => {
+                if (displayedPercent < targetPercent) {
+                    displayedPercent += 1;
+                    updateCounter(displayedPercent);
+                    if (displayedPercent >= 100) {
+                        clearInterval(stepTimer);
+                        stepTimer = null;
+                        tryResolve();
+                    }
+                }
+            }, 16);
+        };
         const unsubscribe = subscribeToLoaderProgress((percent) => {
             sawAnyResource = true;
-            if (counter) counter.textContent = `${percent}%`;
-            if (percent >= 100) {
-                unsubscribe();
-                resolve();
+            targetPercent = Math.max(targetPercent, Math.min(100, percent));
+            startStepper();
+            if (targetPercent >= 100) {
+                tryResolve();
             }
         });
         setTimeout(() => { if (!sawAnyResource) { unsubscribe(); resolve(); } }, 50);
