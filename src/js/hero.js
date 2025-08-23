@@ -37,7 +37,7 @@ function pageLoadScene() {
     const computedStyle = getComputedStyle(document.documentElement);
     const cornerRadiusValue = computedStyle.getPropertyValue('--block-system--corner-radius').trim();
     const negativeCornerRadius = `-${cornerRadiusValue}`;
-
+    gsap.set('.page-loader', { display: 'none' });
     tl.addLabel("heroAnimate", 0)
         .addLabel("heroContentAnimate", 0.35)
 
