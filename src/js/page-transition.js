@@ -89,7 +89,7 @@ barba.init({
             }
           })
             .set(data.next.container, { display: 'block' })
-            .call(() => { try { if (isHome) InitParticleTexture(); } catch (e) {} })
+            .call(() => { try { if (isHome) { console.debug('[barba] calling InitParticleTexture'); InitParticleTexture(); } } catch (e) {} })
             .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
             .call(() => {
               if (window.Webflow && window.Webflow.require) {
