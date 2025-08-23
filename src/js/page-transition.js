@@ -14,7 +14,7 @@ barba.init({
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
         // Clean up morph renderer/listeners before DOM is swapped
-        try { pauseParticleHeroMeshMorph(); } catch (e) {}
+        try { disposeParticleHeroMeshMorph(); } catch (e) {}
         try { disposeParticleTexture(); } catch (e) {}
         try { disposeParticleIcons(); } catch (e) {}
         
