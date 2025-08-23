@@ -41,7 +41,12 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
-        window.scrollTo(0, 0);
+        const anchorId = (data && data.next && data.next.url && data.next.url.hash)
+          ? data.next.url.hash
+          : (window.location.hash ? window.location.hash.replace('#','') : '');
+        if (!anchorId) {
+          window.scrollTo(0, 0);
+        }
         
         const heroCTA = document.querySelector("#hero .hero-cta");
         if (heroCTA) {
@@ -97,7 +102,9 @@ barba.init({
             });
           })();
 
-          return waitForTexture.then(() => {
+          const waitForMorph = isHome ? initParticleHeroMeshMorph(data.next.container) : Promise.resolve();
+
+          return Promise.all([waitForTexture, waitForMorph]).then(() => {
             const timeline = gsap.timeline({
               onComplete: () => {
                 if (heroCTA) {
@@ -105,7 +112,7 @@ barba.init({
                 }
               }
             })
-              .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph(data.next.container))); } catch (e) {} })
+              .call(() => { try { if (anchorId) { const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); } } catch (e) {} })
               .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
               .call(() => {
                 try {
