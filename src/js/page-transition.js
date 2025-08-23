@@ -10,6 +10,7 @@ import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js
 barba.init({
     transitions: [{
       leave(data) {
+        console.log('[barba] leave:start', { current: data && data.current && data.current.namespace, next: data && data.next && data.next.namespace });
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
         // Clean up morph renderer/listeners before DOM is swapped
@@ -35,9 +36,11 @@ barba.init({
             duration: 0.3,
             ease: 'linear'
           }, '-=0.3')
-          .set(data.current.container, { display: 'none' });
+          .set(data.current.container, { display: 'none' })
+          .call(() => console.log('[barba] leave:timeline_complete'));
       },
       enter(data) {
+        console.log('[barba] enter:start', { next: data && data.next && data.next.namespace, url: data && data.next && data.next.url && data.next.url.path });
         window.scrollTo(0, 0);
         
         const heroCTA = document.querySelector("#hero .hero-cta");
@@ -53,6 +56,7 @@ barba.init({
           setScrolled();
         }
         const isHome = data.next.namespace == 'home';
+        console.log('[barba] enter:namespace', { isHome });
         if (isHome) {
           initNavbar();
           //initScrollingGutters();
@@ -63,6 +67,7 @@ barba.init({
 
         if (isHome) {
           resetLoaderProgress();
+          console.log('[barba] enter:progress_reset');
         }
 
         const waitForParticles = isHome
@@ -71,19 +76,23 @@ barba.init({
               InitParticleTexture(),
               initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
               initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
-            ])
+            ]).then((r) => { console.log('[barba] enter:particles_settled', r); return r; })
+              .catch((e) => { console.error('[barba] enter:particles_error', e); throw e; })
           : Promise.resolve();
 
-        const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
+        const waitForBytes = isHome ? waitForByteCompletion(50).then(() => { console.log('[barba] enter:bytes_complete'); }) : Promise.resolve();
 
         const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
+        if (isHome) console.log('[barba] enter:waiting_ready');
 
         return ready.then(() => {
+          console.log('[barba] enter:ready');
           const timeline = gsap.timeline({
             onComplete: () => {
               if (heroCTA) {
                 animateHeroCTA();
               }
+              console.log('[barba] enter:timeline_complete');
             }
           })
             .set(data.next.container, { display: 'block' })
@@ -113,6 +122,9 @@ barba.init({
             }, '-=0')
             .set('.transition-cover', { display: 'none' });
           return timeline;
+        }).catch((e) => {
+          console.error('[barba] enter:error', e);
+          throw e;
         });
       }
     }]
