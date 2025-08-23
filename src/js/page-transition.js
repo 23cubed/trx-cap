@@ -96,7 +96,7 @@ barba.init({
                   setTimeout(() => {
                     try { InitParticleTexture(); } catch (e) {}
                     resolve();
-                  }, 200);
+                  });
                 });
               });
             });
@@ -104,7 +104,9 @@ barba.init({
 
           const waitForMorph = isHome ? initParticleHeroMeshMorph(data.next.container) : Promise.resolve();
 
-          return Promise.all([waitForTexture, waitForMorph]).then(() => {
+          return Promise.all([waitForTexture, waitForMorph])
+            .then(() => new Promise(function(resolve){ setTimeout(resolve, 500); }))
+            .then(() => {
             const timeline = gsap.timeline({
               onComplete: () => {
                 if (heroCTA) {
