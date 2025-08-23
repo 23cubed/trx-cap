@@ -73,6 +73,73 @@ function forceCompleteLoaderProgress() {
     __notify();
 }
 
-export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress };
+function showLoader() {
+    var counter = document.querySelector('.counter');
+    gsap.set(".loader", { display: "flex", autoAlpha: 1 });
+    if (counter) counter.textContent = "0%";
+}
+
+function hideLoader() {
+    return gsap.to('.loader', {
+        autoAlpha: 0,
+        duration: 0.8,
+        ease: "power4.out",
+        onComplete: function () {
+            var loader = document.querySelector('.loader');
+            if (loader) loader.remove();
+        }
+    });
+}
+
+function waitForSteppedCounterCompletion(pauseMs) {
+    var counter = document.querySelector('.counter');
+    var sawAnyResource = false;
+    var targetPercent = 0;
+    var displayedPercent = 0;
+    var stepTimer = null;
+    var getStepInterval = function() {
+        if (!counter) return 16;
+        var v = parseInt(counter.getAttribute('data-step-interval'), 10);
+        return Number.isFinite(v) && v > 0 ? v : 16;
+    };
+    var updateCounter = function(val) { if (counter) counter.textContent = String(val) + '%'; };
+    updateCounter(0);
+    return new Promise(function(resolve) {
+        var done = false;
+        var unsubscribe = null;
+        var tryResolve = function() {
+            if (done) return;
+            if (displayedPercent >= 100 && targetPercent >= 100) {
+                done = true;
+                if (unsubscribe) unsubscribe();
+                if (stepTimer) { clearInterval(stepTimer); stepTimer = null; }
+                setTimeout(function(){ resolve(); }, Number.isFinite(pauseMs) ? pauseMs : 250);
+            }
+        };
+        var startStepper = function() {
+            if (stepTimer) return;
+            stepTimer = setInterval(function() {
+                if (displayedPercent < targetPercent) {
+                    displayedPercent += 1;
+                    updateCounter(displayedPercent);
+                    if (displayedPercent >= 100) {
+                        clearInterval(stepTimer);
+                        stepTimer = null;
+                        tryResolve();
+                    }
+                }
+            }, getStepInterval());
+        };
+        unsubscribe = subscribeToLoaderProgress(function(percent) {
+            sawAnyResource = true;
+            targetPercent = Math.max(targetPercent, Math.min(100, percent));
+            startStepper();
+            if (targetPercent >= 100) tryResolve();
+        });
+        setTimeout(function(){ if (!sawAnyResource && !done) { if (unsubscribe) unsubscribe(); resolve(); } }, 50);
+    });
+}
+
+export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion };
 
 

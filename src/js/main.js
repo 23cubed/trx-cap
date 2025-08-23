@@ -17,7 +17,7 @@ import './three-js-module.js';
 // Import functions to re-export for ES6 module usage
 import { initFormErrors } from './formErrors.js';
 import { initHero, animateHeroCTA } from './hero.js';
-import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress } from './loader-progress.js';
+import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion } from './loader-progress.js';
 import { initNavbar, setScrolled } from './navbar.js';
 import { pageLoader } from './page-load.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
@@ -27,7 +27,7 @@ import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initFormErrors, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initFormErrors, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initFormErrors = initFormErrors;
@@ -39,6 +39,9 @@ window.updateResourceProgress = updateResourceProgress;
 window.endResource = endResource;
 window.subscribeToLoaderProgress = subscribeToLoaderProgress;
 window.forceCompleteLoaderProgress = forceCompleteLoaderProgress;
+window.showLoader = showLoader;
+window.hideLoader = hideLoader;
+window.waitForSteppedCounterCompletion = waitForSteppedCounterCompletion;
 window.initNavbar = initNavbar;
 window.setScrolled = setScrolled;
 window.pageLoader = pageLoader;
@@ -53,5 +56,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './hero.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 8/22/2025, 8:53:12 PM EST');
-console.log('🚀 Functions available for import:', ['initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('📅 Updated at 8/22/2025, 9:01:34 PM EST');
+console.log('🚀 Functions available for import:', ['initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);

@@ -7,7 +7,7 @@ import { splitTextElement, animateSplitText } from './split-text.js';
 import { initParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon } from './particle-icons.js';
-import { resetLoaderProgress, subscribeToLoaderProgress } from './loader-progress.js';
+import { resetLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion } from './loader-progress.js';
 
 function animateHeroCTA() {
     const tl = gsap.timeline();
@@ -160,23 +160,7 @@ function pageLoadScene() {
         );
 }
 
-function showLoader() {
-    const counter = document.querySelector('.counter');
-    gsap.set(".loader", { display: "flex", autoAlpha: 1 });
-    if (counter) counter.textContent = `0%`;
-}
-
-function hideLoader() {
-    return gsap.to('.loader', {
-        autoAlpha: 0,
-        duration: 0.8,
-        ease: "power4.out",
-        onComplete: () => {
-            const loader = document.querySelector('.loader');
-            if (loader) loader.remove();
-        }
-    });
-}
+// loader functions now imported from loader-progress.js
 
 function initHero() {
     const heroHeading = document.querySelector("#heroHeading");
@@ -188,43 +172,7 @@ function initHero() {
     resetLoaderProgress();
     showLoader();
 
-    const counter = document.querySelector('.counter');
-    let sawAnyResource = false;
-    let targetPercent = 0;
-    let displayedPercent = 0;
-    let stepTimer = null;
-    const updateCounter = (val) => { if (counter) counter.textContent = `${val}%`; };
-    updateCounter(0);
-    const bytesDonePromise = new Promise((resolve) => {
-        const tryResolve = () => {
-            if (displayedPercent >= 100 && targetPercent >= 100) {
-                setTimeout(() => resolve(), 250);
-            }
-        };
-        const startStepper = () => {
-            if (stepTimer) return;
-            stepTimer = setInterval(() => {
-                if (displayedPercent < targetPercent) {
-                    displayedPercent += 1;
-                    updateCounter(displayedPercent);
-                    if (displayedPercent >= 100) {
-                        clearInterval(stepTimer);
-                        stepTimer = null;
-                        tryResolve();
-                    }
-                }
-            }, 6);
-        };
-        const unsubscribe = subscribeToLoaderProgress((percent) => {
-            sawAnyResource = true;
-            targetPercent = Math.max(targetPercent, Math.min(100, percent));
-            startStepper();
-            if (targetPercent >= 100) {
-                tryResolve();
-            }
-        });
-        setTimeout(() => { if (!sawAnyResource) { unsubscribe(); resolve(); } }, 50);
-    });
+    const bytesDonePromise = waitForSteppedCounterCompletion(250);
 
     const initPromises = Promise.allSettled([
         initParticleHeroMeshMorph(),
