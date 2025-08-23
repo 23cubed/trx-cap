@@ -140,6 +140,22 @@ function waitForSteppedCounterCompletion(pauseMs) {
     });
 }
 
-export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion };
+function waitForByteCompletion(noResourceResolveMs) {
+    return new Promise(function(resolve) {
+        var done = false;
+        var sawAny = false;
+        var unsubscribe = subscribeToLoaderProgress(function(percent){
+            sawAny = true;
+            if (percent >= 100 && !done) {
+                done = true;
+                unsubscribe();
+                resolve();
+            }
+        });
+        setTimeout(function(){ if (!sawAny && !done) { unsubscribe(); resolve(); } }, Number.isFinite(noResourceResolveMs) ? noResourceResolveMs : 50);
+    });
+}
+
+export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion };
 
 

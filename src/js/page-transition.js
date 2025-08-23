@@ -5,6 +5,7 @@ import { initScrollingGutters } from '../exclude/scrolling-gutters.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon } from './particle-icons.js';
+import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 
 barba.init({
     transitions: [{
@@ -60,6 +61,10 @@ barba.init({
           initFormErrors();
         }
 
+        if (isHome) {
+          resetLoaderProgress();
+        }
+
         const waitForParticles = isHome
           ? Promise.allSettled([
               initParticleHeroMeshMorph(),
@@ -69,7 +74,11 @@ barba.init({
             ])
           : Promise.resolve();
 
-        return waitForParticles.then(() => {
+        const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
+
+        const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
+
+        return ready.then(() => {
           const timeline = gsap.timeline({
             onComplete: () => {
               if (heroCTA) {

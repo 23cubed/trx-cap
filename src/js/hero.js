@@ -32,6 +32,27 @@ function animateHeroCTA() {
     return tl;
 }
 
+function setHeroInitialStates() {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const cornerRadiusValue = computedStyle.getPropertyValue('--block-system--corner-radius').trim();
+    const negativeCornerRadius = `-${cornerRadiusValue}`;
+
+    gsap.set("#heroBG", {
+        top: negativeCornerRadius,
+        left: negativeCornerRadius,
+        right: negativeCornerRadius,
+        borderTopLeftRadius: "0",
+        borderTopRightRadius: "0"
+    });
+    gsap.set("#hero .clip-corner", { borderRadius: "0" });
+    gsap.set("#blockMaskLeft", { marginLeft: negativeCornerRadius, borderTopRightRadius: "0" });
+    gsap.set("#blockMaskRight", { marginRight: negativeCornerRadius, borderTopLeftRadius: "0" });
+    gsap.set("#heroContent", { height: "100vh" });
+    gsap.set(".navbar", { marginLeft: "0rem", marginRight: "0rem", marginTop: "0rem" });
+    gsap.set(".navbar .nav-container", { opacity: 0, y: "2.5rem" });
+    gsap.set("#hero .hero-cta", { opacity: 0, flexGrow: 0 });
+}
+
 function pageLoadScene() {
     const tl = gsap.timeline();
     const computedStyle = getComputedStyle(document.documentElement);
@@ -162,6 +183,7 @@ function pageLoadScene() {
 // loader functions now imported from loader-progress.js
 
 function initHero() {
+    setHeroInitialStates();
     gsap.set('.page-loader', { display: 'none' });
     
     const heroHeading = document.querySelector("#heroHeading");
