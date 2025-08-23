@@ -45,8 +45,11 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
         let updateParticlePositions = null;
         let particleSystem = null;
         
+        // Check for custom image URL on this specific canvas
+        const canvasImageUrl = canvas.getAttribute('data-image-url') || imageUrl;
+        
         const loader = new window.THREE.TextureLoader();
-        loader.load(imageUrl, (texture) => {
+        loader.load(canvasImageUrl, (texture) => {
             createParticlesFromImage(texture);
         }, undefined, () => { resolveCanvasInit(false); });
 
