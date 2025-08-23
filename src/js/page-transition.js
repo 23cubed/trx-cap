@@ -105,7 +105,7 @@ barba.init({
           const waitForMorph = isHome ? initParticleHeroMeshMorph(data.next.container) : Promise.resolve();
 
           return Promise.all([waitForTexture, waitForMorph])
-            .then(() => new Promise(function(resolve){ setTimeout(resolve, 500); }))
+            .then(() => new Promise(function(resolve){ setTimeout(resolve, 100); }))
             .then(() => {
             const timeline = gsap.timeline({
               onComplete: () => {
