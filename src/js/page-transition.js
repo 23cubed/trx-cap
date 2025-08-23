@@ -63,66 +63,75 @@ barba.init({
         if (data.next.namespace == 'contact') {
           initFormErrors();
         }
-        // Make next container measurable under the transition cover, then pre-initialize GPU content
-        gsap.set(data.next.container, { display: 'block' });
+
         if (isHome) {
           resetLoaderProgress();
         }
-        const preInitPromises = [];
-        // Particle textures (any page): init if canvases exist
-        if (document.querySelector('canvas.particle-texture')) {
-          preInitPromises.push(InitParticleTexture());
-        }
-        // Particle icons (home only IDs)
-        if (document.getElementById('healthcare-tech-canvas')) {
-          preInitPromises.push(initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false));
-        }
-        if (document.getElementById('biotech-canvas')) {
-          preInitPromises.push(initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false));
-        }
-        // Morph (home)
-        if (isHome && document.querySelector('#texture-canvas')) {
-          preInitPromises.push(initParticleHeroMeshMorph());
-        }
+
+        const waitForParticles = isHome
+          ? Promise.allSettled([
+              initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
+              initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
+            ])
+          : Promise.resolve();
+
         const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
-        const ready = Promise.allSettled(preInitPromises.concat(waitForBytes));
+
+        const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
 
         return ready.then(() => {
-          const timeline = gsap.timeline({
-            onComplete: () => {
-              if (heroCTA) {
-                animateHeroCTA();
-              }
-            }
-          })
-            .set(data.next.container, { display: 'block' })
-            .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
-            .call(() => {
-              if (window.Webflow && window.Webflow.require) {
-                window.Webflow.require('ix2').init();
+          gsap.set(data.next.container, { display: 'block' });
+
+          const waitForTexture = (() => {
+            const hasTextureCanvas = !!document.querySelector('canvas.particle-texture');
+            if (!hasTextureCanvas) return Promise.resolve();
+            return new Promise((resolve) => {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  try { InitParticleTexture(); } catch (e) {}
+                  resolve();
+                });
+              });
+            });
+          })();
+
+          return waitForTexture.then(() => {
+            const timeline = gsap.timeline({
+              onComplete: () => {
+                if (heroCTA) {
+                  animateHeroCTA();
+                }
               }
             })
-            .call(() => ScrollTrigger.refresh())
-            .to('.transition-v2', {
-              top: `-${cornerRadiusValue * 1.5}rem`,
-              left: `-${cornerRadiusValue * 1.5}rem`,
-              right: `-${cornerRadiusValue * 1.5}rem`,
-              bottom: `-${cornerRadiusValue * 1.5}rem`,
-              duration: 0.4,
-              ease: 'power2.inOut'
-            })
-            .to('.transition-sheet-bottom', {
-              height: `${cornerRadiusValue}rem`,
-              duration: 0.4,
-              ease: 'power2.inOut'
-            }, '-=0.4')
-            .to('.transition-cover', {
-              opacity: 0,
-              duration: 0.3,
-              ease: 'power2.inOut'
-            }, '-=0')
-            .set('.transition-cover', { display: 'none' });
-          return timeline;
+              .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph())); } catch (e) {} })
+              .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
+              .call(() => {
+                if (window.Webflow && window.Webflow.require) {
+                  window.Webflow.require('ix2').init();
+                }
+              })
+              .call(() => ScrollTrigger.refresh())
+              .to('.transition-v2', {
+                top: `-${cornerRadiusValue * 1.5}rem`,
+                left: `-${cornerRadiusValue * 1.5}rem`,
+                right: `-${cornerRadiusValue * 1.5}rem`,
+                bottom: `-${cornerRadiusValue * 1.5}rem`,
+                duration: 0.4,
+                ease: 'power2.inOut'
+              })
+              .to('.transition-sheet-bottom', {
+                height: `${cornerRadiusValue}rem`,
+                duration: 0.4,
+                ease: 'power2.inOut'
+              }, '-=0.4')
+              .to('.transition-cover', {
+                opacity: 0,
+                duration: 0.3,
+                ease: 'power2.inOut'
+              }, '-=0')
+              .set('.transition-cover', { display: 'none' });
+            return timeline;
+          });
         });
       }
     }]
