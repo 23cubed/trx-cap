@@ -220,12 +220,13 @@ function initDNAHelix(scene, assetUrl) {
     // Main particle field setup and animation
 var particleInitPromise = null;
 
-function initParticleHeroMeshMorph() {
+function initParticleHeroMeshMorph(rootElement) {
     if (particleInitPromise) {
         return particleInitPromise;
     }
     particleInitPromise = new Promise(function(resolve) {
-        var canvas = document.querySelector('#texture-canvas');
+        var searchRoot = (rootElement && rootElement.querySelector) ? rootElement : document;
+        var canvas = searchRoot.querySelector('#texture-canvas');
         if (!canvas) {
             resolve(false);
             return;

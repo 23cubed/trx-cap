@@ -105,7 +105,7 @@ barba.init({
                 }
               }
             })
-              .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph())); } catch (e) {} })
+              .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph(data.next.container))); } catch (e) {} })
               .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
               .call(() => {
                 try {
