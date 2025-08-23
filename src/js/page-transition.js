@@ -63,21 +63,29 @@ barba.init({
         if (data.next.namespace == 'contact') {
           initFormErrors();
         }
-
+        // Make next container measurable under the transition cover, then pre-initialize GPU content
+        gsap.set(data.next.container, { display: 'block' });
         if (isHome) {
           resetLoaderProgress();
         }
-
-        const waitForParticles = isHome
-          ? Promise.allSettled([
-              initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
-              initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
-            ])
-          : Promise.resolve();
-
+        const preInitPromises = [];
+        // Particle textures (any page): init if canvases exist
+        if (document.querySelector('canvas.particle-texture')) {
+          preInitPromises.push(InitParticleTexture());
+        }
+        // Particle icons (home only IDs)
+        if (document.getElementById('healthcare-tech-canvas')) {
+          preInitPromises.push(initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false));
+        }
+        if (document.getElementById('biotech-canvas')) {
+          preInitPromises.push(initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false));
+        }
+        // Morph (home)
+        if (isHome && document.querySelector('#texture-canvas')) {
+          preInitPromises.push(initParticleHeroMeshMorph());
+        }
         const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
-
-        const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
+        const ready = Promise.allSettled(preInitPromises.concat(waitForBytes));
 
         return ready.then(() => {
           const timeline = gsap.timeline({
@@ -88,8 +96,6 @@ barba.init({
             }
           })
             .set(data.next.container, { display: 'block' })
-            .call(() => { try { if (document.querySelector('canvas.particle-texture')) InitParticleTexture(); } catch (e) {} })
-            .call(() => { try { if (isHome) requestAnimationFrame(() => requestAnimationFrame(() => initParticleHeroMeshMorph())); } catch (e) {} })
             .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
             .call(() => {
               if (window.Webflow && window.Webflow.require) {
