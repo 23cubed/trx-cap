@@ -3,7 +3,6 @@
 
 import './copied-message.js';
 import './formErrors.js';
-import './fsInit.js';
 import './hero.js';
 import './image-particle-filter.js';
 import './loader-progress.js';
@@ -20,7 +19,6 @@ import './three-js-module.js';
 // Import functions to re-export for ES6 module usage
 import { initCopied } from './copied-message.js';
 import { initFormErrors } from './formErrors.js';
-import { safeInitFinsweet } from './fsInit.js';
 import { initHero, animateHeroCTA } from './hero.js';
 import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion } from './loader-progress.js';
 import { initNavbar, setScrolled } from './navbar.js';
@@ -32,12 +30,11 @@ import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initCopied, initFormErrors, safeInitFinsweet, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initCopied, initFormErrors, initHero, animateHeroCTA, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initCopied = initCopied;
 window.initFormErrors = initFormErrors;
-window.safeInitFinsweet = safeInitFinsweet;
 window.initHero = initHero;
 window.animateHeroCTA = animateHeroCTA;
 window.resetLoaderProgress = resetLoaderProgress;
@@ -65,6 +62,6 @@ window.animateSplitText = animateSplitText;
 window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', ['./copied-message.js', './formErrors.js', './fsInit.js', './hero.js', './image-particle-filter.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 8/24/2025, 12:24:31 PM EST');
-console.log('🚀 Functions available for import:', ['initCopied', 'initFormErrors', 'safeInitFinsweet', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('🚀 TRX Cap modules loaded:', ['./copied-message.js', './formErrors.js', './hero.js', './image-particle-filter.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
+console.log('📅 Updated at 8/24/2025, 12:33:46 PM EST');
+console.log('🚀 Functions available for import:', ['initCopied', 'initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
