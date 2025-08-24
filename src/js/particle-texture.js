@@ -18,8 +18,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
         window.__particleTextureMouseListenerRegistered = true;
     }
 
-    // Debug: entry and canvas count
-    try { console.debug('[particle-texture] InitParticleTexture start', { count: canvases.length }); } catch (e) {}
+
 
     canvases.forEach(canvas => {
         let resolveCanvasInit;
@@ -49,7 +48,6 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             });
             __particleTextureRenderers.add(renderer);
             try { canvas.setAttribute('data-texture-initialized', '1'); } catch (e) {}
-            try { console.debug('[particle-texture] initialized canvas', { id: canvas.id || null }); } catch (e) {}
             renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
             renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
             renderer.setClearColor(0x000000, 0);
@@ -192,9 +190,6 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 const numParticles = particleData.length;
 
                 if (numParticles === 0) {
-                    if (canvas.clientWidth > 8 && canvas.clientHeight > 8) {
-                        console.warn('No visible pixels found in image');
-                    }
                     resolveCanvasInit(false);
                     return;
                 }
