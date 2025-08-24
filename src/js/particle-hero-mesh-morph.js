@@ -574,21 +574,11 @@ function initParticleHeroMeshMorph(rootElement) {
                 var tRexParticleCount = tRexPositions.length / 3;
                 var dnaParticleCount = dnaPositionAttribute.count;
                 dnaPositions = new Float32Array(tRexPositions.length);
-                var jitterAmp = 0.25;
                 for (var i = 0; i < tRexParticleCount; i++) {
                     var dnaIndex = i % dnaParticleCount;
-                    var bx = dnaPositionAttribute.getX(dnaIndex);
-                    var by = dnaPositionAttribute.getY(dnaIndex);
-                    var bz = dnaPositionAttribute.getZ(dnaIndex);
-                    var h1 = Math.sin((i + 1) * 12.9898) * 43758.5453; h1 = h1 - Math.floor(h1);
-                    var h2 = Math.sin((i + 7) * 78.233) * 12345.6789; h2 = h2 - Math.floor(h2);
-                    var ang = h1 * Math.PI * 2;
-                    var rad = jitterAmp * (0.4 + 0.6 * h2);
-                    var jx = Math.cos(ang) * rad;
-                    var jy = Math.sin(ang) * rad;
-                    dnaPositions[3 * i] = bx + jx;
-                    dnaPositions[3 * i + 1] = by + jy;
-                    dnaPositions[3 * i + 2] = bz;
+                    dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
+                    dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
+                    dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
                 }
                 // Precompute deltas for faster per-frame morph
                 deltaPositions = new Float32Array(tRexPositions.length);
@@ -617,15 +607,27 @@ function initParticleHeroMeshMorph(rootElement) {
                     var particleCount = tRexParticleCount;
                     texSize = Math.ceil(Math.sqrt(particleCount));
                     var uvs = new Float32Array(particleCount * 2);
+                    var owners = new Float32Array(particleCount);
+                    var rands = new Float32Array(particleCount);
                     for (var ui = 0; ui < particleCount; ui++) {
                         var uy = Math.floor(ui / texSize);
                         var ux = ui - uy * texSize;
                         uvs[2 * ui] = (ux + 0.5) / texSize;
                         uvs[2 * ui + 1] = (uy + 0.5) / texSize;
+                        owners[ui] = ui < dnaParticleCount ? 1.0 : 0.0;
+                        // simple deterministic hash -> [0,1)
+                        var h = Math.sin((ui + 1) * 12.9898) * 43758.5453; h = h - Math.floor(h);
+                        rands[ui] = h;
                     }
                     var uvAttr = new window.THREE.Float32BufferAttribute(uvs, 2);
                     uvAttr.setUsage(window.THREE.StaticDrawUsage);
                     geom.setAttribute('aUV', uvAttr);
+                    var ownerAttr = new window.THREE.Float32BufferAttribute(owners, 1);
+                    ownerAttr.setUsage(window.THREE.StaticDrawUsage);
+                    geom.setAttribute('aOwner', ownerAttr);
+                    var randAttr = new window.THREE.Float32BufferAttribute(rands, 1);
+                    randAttr.setUsage(window.THREE.StaticDrawUsage);
+                    geom.setAttribute('aRand', randAttr);
 
                     function makeRT() {
                         return new window.THREE.WebGLRenderTarget(texSize, texSize, {
@@ -749,7 +751,9 @@ function initParticleHeroMeshMorph(rootElement) {
                         uTexSize: { value: texSize },
                         uAvgDNAZ: { value: avgDNAZ },
                         uAvgDeltaZ: { value: avgDeltaZ },
-                        uAvgDissolveZ: { value: avgDissolveZ }
+                        uAvgDissolveZ: { value: avgDissolveZ },
+                        uFadeStart: { value: 0.85 },
+                        uRandRange: { value: 0.12 }
                     };
 
                     var vs = '\n\
@@ -758,6 +762,8 @@ function initParticleHeroMeshMorph(rootElement) {
                         attribute vec3 aDelta;\n\
                         attribute vec3 aDissolve;\n\
                         attribute vec2 aUV;\n\
+                        attribute float aOwner;\n\
+                        attribute float aRand;\n\
                         uniform float uProgress;\n\
                         uniform float uDissolveIntensity;\n\
                         uniform float uDepthRange;\n\
@@ -768,7 +774,10 @@ function initParticleHeroMeshMorph(rootElement) {
                         uniform float uAvgDNAZ;\n\
                         uniform float uAvgDeltaZ;\n\
                         uniform float uAvgDissolveZ;\n\
+                        uniform float uFadeStart;\n\
+                        uniform float uRandRange;\n\
                         varying float vBrightness;\n\
+                        varying float vFade;\n\
                         void main(){\n\
                             vec3 base = aDna + aDelta * uProgress + aDissolve * uDissolveIntensity;\n\
                             vec2 off = texture2D(tOffsets, aUV).xy;\n\
@@ -778,6 +787,10 @@ function initParticleHeroMeshMorph(rootElement) {
                             float farZ = avgZ - uDepthRange * 0.5;\n\
                             float normZ = clamp((base.z - farZ) / (nearZ - farZ), 0.0, 1.0);\n\
                             vBrightness = mix(uMinOpacity, uMaxOpacity, normZ);\n\
+                            // DNA ownership fading to avoid stacking brightness near end-state\n\
+                            float tDNA = 1.0 - uProgress;\n\
+                            float fadeNonOwner = 1.0 - smoothstep(uFadeStart + (aRand - 0.5) * uRandRange, 1.0, tDNA);\n\
+                            vFade = mix(fadeNonOwner, 1.0, step(0.5, aOwner));\n\
                             vec4 mv = modelViewMatrix * vec4(base, 1.0);\n\
                             gl_Position = projectionMatrix * mv;\n\
                             gl_PointSize = uPointSize;\n\
@@ -787,9 +800,10 @@ function initParticleHeroMeshMorph(rootElement) {
                         #include <common>\n\
                         uniform sampler2D pointTexture;\n\
                         varying float vBrightness;\n\
+                        varying float vFade;\n\
                         void main(){\n\
                             vec4 tex = texture2D(pointTexture, gl_PointCoord);\n\
-                            gl_FragColor = vec4(vec3(vBrightness), tex.a);\n\
+                            gl_FragColor = vec4(vec3(vBrightness) * vFade, tex.a * vFade);\n\
                             #include <tonemapping_fragment>\n\
                             #include <colorspace_fragment>\n\
                         }';
