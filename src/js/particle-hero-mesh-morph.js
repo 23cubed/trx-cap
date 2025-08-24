@@ -574,11 +574,21 @@ function initParticleHeroMeshMorph(rootElement) {
                 var tRexParticleCount = tRexPositions.length / 3;
                 var dnaParticleCount = dnaPositionAttribute.count;
                 dnaPositions = new Float32Array(tRexPositions.length);
+                var jitterAmp = 0.25;
                 for (var i = 0; i < tRexParticleCount; i++) {
                     var dnaIndex = i % dnaParticleCount;
-                    dnaPositions[3 * i] = dnaPositionAttribute.getX(dnaIndex);
-                    dnaPositions[3 * i + 1] = dnaPositionAttribute.getY(dnaIndex);
-                    dnaPositions[3 * i + 2] = dnaPositionAttribute.getZ(dnaIndex);
+                    var bx = dnaPositionAttribute.getX(dnaIndex);
+                    var by = dnaPositionAttribute.getY(dnaIndex);
+                    var bz = dnaPositionAttribute.getZ(dnaIndex);
+                    var h1 = Math.sin((i + 1) * 12.9898) * 43758.5453; h1 = h1 - Math.floor(h1);
+                    var h2 = Math.sin((i + 7) * 78.233) * 12345.6789; h2 = h2 - Math.floor(h2);
+                    var ang = h1 * Math.PI * 2;
+                    var rad = jitterAmp * (0.4 + 0.6 * h2);
+                    var jx = Math.cos(ang) * rad;
+                    var jy = Math.sin(ang) * rad;
+                    dnaPositions[3 * i] = bx + jx;
+                    dnaPositions[3 * i + 1] = by + jy;
+                    dnaPositions[3 * i + 2] = bz;
                 }
                 // Precompute deltas for faster per-frame morph
                 deltaPositions = new Float32Array(tRexPositions.length);
