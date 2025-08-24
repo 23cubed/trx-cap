@@ -18,3 +18,5 @@ function initCopied(){
       });
     });
 }
+
+export { initCopied }
