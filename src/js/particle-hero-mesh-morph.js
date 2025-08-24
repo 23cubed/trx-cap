@@ -391,6 +391,12 @@ function initParticleHeroMeshMorph(rootElement) {
             dnaWorldPos.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
             tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
             particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, morphProgress.value);
+            // Ensure draw material tracks morph timeline
+            if (particleSystem.material && particleSystem.material.uniforms) {
+                var du = particleSystem.material.uniforms;
+                if (du.uProgress) du.uProgress.value = morphProgress.value;
+                if (du.uDissolveIntensity) du.uDissolveIntensity.value = Math.sin(morphProgress.value * Math.PI);
+            }
         }
         
         // Smooth rotation based on mouse position

@@ -134,17 +134,6 @@ barba.init({
                 }
               }
             })
-              .call(() => { 
-                try { 
-                  if (anchorId) { 
-                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; 
-                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); 
-                    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); 
-                  } else {
-                    window.scrollTo(0, 0);
-                  }
-                } catch (e) {} 
-              })
               .call(() => { try { ScrollTrigger.refresh(); } catch (e) {} })
               .call(() => {
                 try {
@@ -169,6 +158,18 @@ barba.init({
                 } catch (e) {}
               })
               .call(() => ScrollTrigger.refresh())
+              .call(() => { 
+                try { 
+                  // Handle scroll after all ScrollTrigger operations are complete
+                  if (anchorId) { 
+                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; 
+                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); 
+                    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); 
+                  } else {
+                    window.scrollTo(0, 0);
+                  }
+                } catch (e) {} 
+              })
               .call(() => new Promise(resolve => setTimeout(resolve, 10)))
               .to('.transition-v2', {
                 top: `-${cornerRadiusValue * 1.5}rem`,
