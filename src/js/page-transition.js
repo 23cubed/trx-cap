@@ -117,6 +117,7 @@ barba.init({
         }
         if (data.next.namespace == 'post') {
           initCopied();
+          window.fsAttributes.init();
         }
         if (isHome) {
           resetLoaderProgress();
