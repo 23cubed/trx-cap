@@ -186,11 +186,7 @@ barba.init({
               .call(() =>{
                 if (isPosts){
                   requestAnimationFrame(() => {
-                    if (window.fsAttributes && window.fsAttributes.length) {
-                      window.fsAttributes.forEach(f => {
-                        if (f.init && typeof f.init === 'function') f.init();
-                      });
-                    }
+                    window.fsAttributes.init();
                   });
                 }
               })
@@ -198,11 +194,7 @@ barba.init({
                 if (isPost){
                   requestAnimationFrame(() => {
                     initCopied();
-                    if (window.fsAttributes && window.fsAttributes.length) {
-                      window.fsAttributes.forEach(f => {
-                        if (f.init && typeof f.init === 'function') f.init();
-                      });
-                    }
+                    window.fsAttributes.init();
                   });
                 }
               })
