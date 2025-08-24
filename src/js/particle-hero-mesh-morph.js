@@ -273,6 +273,7 @@ function initParticleHeroMeshMorph(rootElement) {
 
     // State variables
     var particleSystem = null;
+    var shaderUniforms = null;
     var tRexPositions = null;
     var dnaPositions = null;
     var deltaPositions = null;
@@ -287,6 +288,17 @@ function initParticleHeroMeshMorph(rootElement) {
     var mouse = new window.THREE.Vector2();
     var mouseWorldPos = new window.THREE.Vector3();
     var repulsionOffsets = null;
+    var texSize = 0;
+    var offsetsRT_A = null;
+    var offsetsRT_B = null;
+    var offsetsRead = null;
+    var offsetsWrite = null;
+    var computeScene = null;
+    var computeCamera = null;
+    var computeMaterial = null;
+    var dnaTex = null;
+    var deltaTex = null;
+    var dissolveTex = null;
     
     var currentRotation = 0;
     var depthRange = 20;
@@ -340,6 +352,9 @@ function initParticleHeroMeshMorph(rootElement) {
     var tmpWorld = new window.THREE.Vector3();
     var dnaWorldPos = new window.THREE.Vector3();
     var tRexWorldPos = new window.THREE.Vector3();
+    var tmpVec2 = new window.THREE.Vector2();
+    var mvMatrix = new window.THREE.Matrix4();
+    var mvpMatrix = new window.THREE.Matrix4();
 
     // Animation loop
     function renderLoop() {
@@ -348,95 +363,34 @@ function initParticleHeroMeshMorph(rootElement) {
             camera.updateProjectionMatrix();
         }
         
-        // Morph + dissolve + repulsion combined in a single pass per frame
-        if (particleSystem && tRexPositions && dnaPositions && dissolveDisplacements) {
-            if (!repulsionOffsets) {
-                repulsionOffsets = new Float32Array(tRexPositions.length);
+        // GPGPU offsets update pass (ping-pong)
+        if (computeScene && computeMaterial && offsetsWrite && offsetsRead) {
+            computeMaterial.uniforms.uProgress.value = morphProgress.value;
+            computeMaterial.uniforms.uDissolve.value = Math.sin(morphProgress.value * Math.PI);
+            computeMaterial.uniforms.uMouse.value.set(mouse.x, mouse.y);
+            computeMaterial.uniforms.tOffsets.value = offsetsRead.texture;
+            // update matrices for accurate NDC computation
+            if (particleSystem) {
+                particleSystem.updateMatrixWorld(true);
+                computeMaterial.uniforms.uModelMatrix.value.copy(particleSystem.matrixWorld);
             }
-            var positionAttribute = particleSystem.geometry.getAttribute('position');
-            var count = positionAttribute.count;
-            var progress = morphProgress.value;
-            var dissolveIntensity = Math.sin(progress * Math.PI);
-            var positionArray = positionAttribute.array;
-            var colorAttribute = particleSystem.geometry.getAttribute('color');
-            var colorArray = colorAttribute.array;
-            var sumZ = 0;
-
-            for (var i = 0; i < count; i++) {
-                var dnaX = dnaPositions[3 * i];
-                var dnaY = dnaPositions[3 * i + 1];
-                var dnaZ = dnaPositions[3 * i + 2];
-
-                var dX = deltaPositions ? deltaPositions[3 * i] : (tRexPositions[3 * i] - dnaX);
-                var dY = deltaPositions ? deltaPositions[3 * i + 1] : (tRexPositions[3 * i + 1] - dnaY);
-                var dZ = deltaPositions ? deltaPositions[3 * i + 2] : (tRexPositions[3 * i + 2] - dnaZ);
-
-                var baseX = dnaX + dX * progress + dissolveDisplacements[3 * i] * dissolveIntensity;
-                var baseY = dnaY + dY * progress + dissolveDisplacements[3 * i + 1] * dissolveIntensity;
-                var baseZ = dnaZ + dZ * progress + dissolveDisplacements[3 * i + 2] * dissolveIntensity;
-
-                sumZ += baseZ;
-
-                // Reuse tmpWorld vector for projection
-                tmpWorld.set(baseX, baseY, baseZ).applyMatrix4(particleSystem.matrixWorld).project(camera);
-
-                var screenDx = tmpWorld.x - mouse.x;
-                var screenDy = tmpWorld.y - mouse.y;
-                var screenDistance = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
-
-                var targetOffsetX = 0;
-                var targetOffsetY = 0;
-
-                if (screenDistance < REPULSION_CONFIG.screenRadius) {
-                    var influence = Math.pow(1 - screenDistance / REPULSION_CONFIG.screenRadius, 2);
-                    var repulsionForce = influence * REPULSION_CONFIG.strength;
-
-                    var normalizedDx, normalizedDy;
-                    if (screenDistance < 0.001) {
-                        var angle = Math.atan2(tmpWorld.y, tmpWorld.x) + (Math.random() - 0.5) * 0.5;
-                        normalizedDx = Math.cos(angle);
-                        normalizedDy = Math.sin(angle);
-                        repulsionForce = REPULSION_CONFIG.strength * 2;
-                    } else {
-                        normalizedDx = screenDx / screenDistance;
-                        normalizedDy = screenDy / screenDistance;
-                    }
-                    targetOffsetX = normalizedDx * repulsionForce * 5;
-                    targetOffsetY = normalizedDy * repulsionForce * 5;
-                }
-
-                repulsionOffsets[3 * i] += (targetOffsetX - repulsionOffsets[3 * i]) * REPULSION_CONFIG.easeSpeed;
-                repulsionOffsets[3 * i + 1] += (targetOffsetY - repulsionOffsets[3 * i + 1]) * REPULSION_CONFIG.easeSpeed;
-
-                var finalX = baseX + repulsionOffsets[3 * i];
-                var finalY = baseY + repulsionOffsets[3 * i + 1];
-
-                var idx = 3 * i;
-                positionArray[idx] = finalX;
-                positionArray[idx + 1] = finalY;
-                positionArray[idx + 2] = baseZ;
+            computeMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse);
+            computeMaterial.uniforms.uProjectionMatrix.value.copy(camera.projectionMatrix);
+            renderer.setRenderTarget(offsetsWrite);
+            renderer.render(computeScene, computeCamera);
+            renderer.setRenderTarget(null);
+            var tmp = offsetsRead; offsetsRead = offsetsWrite; offsetsWrite = tmp;
+            // update draw material to sample latest offsets
+            if (particleSystem && particleSystem.material && particleSystem.material.uniforms && particleSystem.material.uniforms.tOffsets) {
+                particleSystem.material.uniforms.tOffsets.value = offsetsRead.texture;
             }
-            positionAttribute.needsUpdate = true;
+        }
 
-            // Update world position interpolation once per frame
+        // Update world position interpolation once per frame
+        if (particleSystem) {
             dnaWorldPos.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
             tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
-            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, progress);
-
-            // Update depth-based colors once per frame (final positions) using one pass for normalization
-            var avgZ = sumZ / count;
-            var nearZ = avgZ + depthRange / 2;
-            var farZ = avgZ - depthRange / 2;
-            for (var i = 0; i < count; i++) {
-                var z = positionArray[3 * i + 2];
-                var normalizedZ = Math.max(0, Math.min(1, (z - farZ) / (nearZ - farZ)));
-                var opacity = minOpacity + (maxOpacity - minOpacity) * normalizedZ;
-                var ci = 3 * i;
-                colorArray[ci] = opacity;
-                colorArray[ci + 1] = opacity;
-                colorArray[ci + 2] = opacity;
-            }
-            colorAttribute.needsUpdate = true;
+            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, morphProgress.value);
         }
         
         // Smooth rotation based on mouse position
@@ -628,6 +582,195 @@ function initParticleHeroMeshMorph(rootElement) {
                     deltaPositions[3 * i + 2] = tRexPositions[3 * i + 2] - dnaPositions[3 * i + 2];
                 }
                 dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
+
+                // Initialize GPGPU ping-pong and draw shader
+                try {
+                    var geom = particleSystem.geometry;
+                    // Static attributes for base shapes
+                    var dnaAttr = new window.THREE.Float32BufferAttribute(dnaPositions, 3);
+                    var deltaAttr = new window.THREE.Float32BufferAttribute(deltaPositions, 3);
+                    var dissolveAttr = new window.THREE.Float32BufferAttribute(dissolveDisplacements, 3);
+                    dnaAttr.setUsage(window.THREE.StaticDrawUsage);
+                    deltaAttr.setUsage(window.THREE.StaticDrawUsage);
+                    dissolveAttr.setUsage(window.THREE.StaticDrawUsage);
+                    geom.setAttribute('aDna', dnaAttr);
+                    geom.setAttribute('aDelta', deltaAttr);
+                    geom.setAttribute('aDissolve', dissolveAttr);
+
+                    // UVs mapping each vertex to texel in offsets texture
+                    var particleCount = tRexParticleCount;
+                    texSize = Math.ceil(Math.sqrt(particleCount));
+                    var uvs = new Float32Array(particleCount * 2);
+                    for (var ui = 0; ui < particleCount; ui++) {
+                        var uy = Math.floor(ui / texSize);
+                        var ux = ui - uy * texSize;
+                        uvs[2 * ui] = (ux + 0.5) / texSize;
+                        uvs[2 * ui + 1] = (uy + 0.5) / texSize;
+                    }
+                    var uvAttr = new window.THREE.Float32BufferAttribute(uvs, 2);
+                    uvAttr.setUsage(window.THREE.StaticDrawUsage);
+                    geom.setAttribute('aUV', uvAttr);
+
+                    function makeRT() {
+                        return new window.THREE.WebGLRenderTarget(texSize, texSize, {
+                            minFilter: window.THREE.NearestFilter,
+                            magFilter: window.THREE.NearestFilter,
+                            wrapS: window.THREE.ClampToEdgeWrapping,
+                            wrapT: window.THREE.ClampToEdgeWrapping,
+                            type: window.THREE.FloatType,
+                            depthBuffer: false,
+                            stencilBuffer: false,
+                            format: window.THREE.RGBAFormat
+                        });
+                    }
+                    offsetsRT_A = makeRT();
+                    offsetsRT_B = makeRT();
+                    offsetsRead = offsetsRT_A;
+                    offsetsWrite = offsetsRT_B;
+
+                    // Pack base positions/delta/dissolve into textures
+                    function makeDataTex(src) {
+                        var arr = new Float32Array(texSize * texSize * 4);
+                        for (var i3 = 0; i3 < particleCount; i3++) {
+                            arr[4 * i3] = src[3 * i3];
+                            arr[4 * i3 + 1] = src[3 * i3 + 1];
+                            arr[4 * i3 + 2] = src[3 * i3 + 2];
+                            arr[4 * i3 + 3] = 1.0;
+                        }
+                        var dt = new window.THREE.DataTexture(arr, texSize, texSize, window.THREE.RGBAFormat, window.THREE.FloatType);
+                        dt.needsUpdate = true;
+                        return dt;
+                    }
+                    dnaTex = makeDataTex(dnaPositions);
+                    deltaTex = makeDataTex(deltaPositions);
+                    dissolveTex = makeDataTex(dissolveDisplacements);
+
+                    // Compute pass scene/material
+                    computeScene = new window.THREE.Scene();
+                    computeCamera = new window.THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+                    var plane = new window.THREE.PlaneGeometry(2, 2);
+                    computeMaterial = new window.THREE.ShaderMaterial({
+                        uniforms: {
+                            tOffsets: { value: offsetsRead.texture },
+                            tDNA: { value: dnaTex },
+                            tDelta: { value: deltaTex },
+                            tDissolve: { value: dissolveTex },
+                            uProgress: { value: morphProgress.value },
+                            uDissolve: { value: 0.0 },
+                            uMouse: { value: new window.THREE.Vector2(0, 0) },
+                            uScreenRadius: { value: REPULSION_CONFIG.screenRadius },
+                            uStrength: { value: REPULSION_CONFIG.strength },
+                            uEase: { value: REPULSION_CONFIG.easeSpeed },
+                            uTexSize: { value: texSize },
+                            uModelMatrix: { value: new window.THREE.Matrix4() },
+                            uViewMatrix: { value: new window.THREE.Matrix4() },
+                            uProjectionMatrix: { value: new window.THREE.Matrix4() }
+                        },
+                        vertexShader: 'void main(){ gl_Position = vec4(position,1.0); }',
+                        fragmentShader: '\n\
+                            precision highp float;\n\
+                            uniform sampler2D tOffsets;\n\
+                            uniform sampler2D tDNA;\n\
+                            uniform sampler2D tDelta;\n\
+                            uniform sampler2D tDissolve;\n\
+                            uniform float uProgress;\n\
+                            uniform float uDissolve;\n\
+                            uniform vec2 uMouse;\n\
+                            uniform float uScreenRadius;\n\
+                            uniform float uStrength;\n\
+                            uniform float uEase;\n\
+                            uniform float uTexSize;\n\
+                            uniform mat4 uModelMatrix;\n\
+                            uniform mat4 uViewMatrix;\n\
+                            uniform mat4 uProjectionMatrix;\n\
+                            void main(){\n\
+                                vec2 uv = gl_FragCoord.xy / uTexSize;\n\
+                                vec4 off = texture2D(tOffsets, uv);\n\
+                                vec3 dna = texture2D(tDNA, uv).xyz;\n\
+                                vec3 del = texture2D(tDelta, uv).xyz;\n\
+                                vec3 dis = texture2D(tDissolve, uv).xyz;\n\
+                                vec3 base = dna + del * uProgress + dis * uDissolve;\n\
+                                vec4 world = uModelMatrix * vec4(base, 1.0);\n\
+                                vec4 view = uViewMatrix * world;\n\
+                                vec4 clip = uProjectionMatrix * view;\n\
+                                vec2 ndc = clip.xy / clip.w;\n\
+                                float dist = length(ndc - uMouse);\n\
+                                vec2 target = vec2(0.0);\n\
+                                if (dist < uScreenRadius && dist > 0.0001) {\n\
+                                    float influence = pow(1.0 - dist / uScreenRadius, 2.0);\n\
+                                    float rep = influence * uStrength;\n\
+                                    vec2 dir = normalize(ndc - uMouse);\n\
+                                    target = dir * rep * 5.0;\n\
+                                }\n\
+                                vec2 eased = off.xy + (target - off.xy) * uEase;\n\
+                                gl_FragColor = vec4(eased, 0.0, 1.0);\n\
+                            }'
+                    });
+                    var quad = new window.THREE.Mesh(plane, computeMaterial);
+                    computeScene.add(quad);
+
+                    // Draw pass material sampling offsets
+                    shaderUniforms = {
+                        pointTexture: { value: getParticleTexture() },
+                        uProgress: { value: morphProgress.value },
+                        uDissolveIntensity: { value: 0 },
+                        uDepthRange: { value: depthRange },
+                        uMinOpacity: { value: minOpacity },
+                        uMaxOpacity: { value: maxOpacity },
+                        uPointSize: { value: 1.5 },
+                        tOffsets: { value: offsetsRead.texture },
+                        uTexSize: { value: texSize }
+                    };
+
+                    var vs = '\n\
+                        #include <common>\n\
+                        attribute vec3 aDna;\n\
+                        attribute vec3 aDelta;\n\
+                        attribute vec3 aDissolve;\n\
+                        attribute vec2 aUV;\n\
+                        uniform float uProgress;\n\
+                        uniform float uDissolveIntensity;\n\
+                        uniform float uDepthRange;\n\
+                        uniform float uMinOpacity;\n\
+                        uniform float uMaxOpacity;\n\
+                        uniform float uPointSize;\n\
+                        uniform sampler2D tOffsets;\n\
+                        varying float vBrightness;\n\
+                        void main(){\n\
+                            vec3 base = aDna + aDelta * uProgress + aDissolve * uDissolveIntensity;\n\
+                            vec2 off = texture2D(tOffsets, aUV).xy;\n\
+                            base.xy += off;\n\
+                            float nearZ = base.z + uDepthRange * 0.5;\n\
+                            float farZ = base.z - uDepthRange * 0.5;\n\
+                            float normZ = clamp((base.z - farZ) / (nearZ - farZ), 0.0, 1.0);\n\
+                            vBrightness = mix(uMinOpacity, uMaxOpacity, normZ);\n\
+                            vec4 mv = modelViewMatrix * vec4(base, 1.0);\n\
+                            gl_Position = projectionMatrix * mv;\n\
+                            gl_PointSize = uPointSize;\n\
+                        }';
+
+                    var fs = '\n\
+                        #include <common>\n\
+                        uniform sampler2D pointTexture;\n\
+                        varying float vBrightness;\n\
+                        void main(){\n\
+                            vec4 tex = texture2D(pointTexture, gl_PointCoord);\n\
+                            gl_FragColor = vec4(vec3(vBrightness), tex.a);\n\
+                            #include <tonemapping_fragment>\n\
+                            #include <colorspace_fragment>\n\
+                        }';
+
+                    var drawMat = new window.THREE.ShaderMaterial({
+                        uniforms: shaderUniforms,
+                        vertexShader: vs,
+                        fragmentShader: fs,
+                        transparent: true,
+                        blending: window.THREE.AdditiveBlending,
+                        depthWrite: false
+                    });
+                    particleSystem.material = drawMat;
+                } catch (e) {}
+
                 initMorphTimeline();
                 morphState.initialized = true;
                 morphState.paused = false;
