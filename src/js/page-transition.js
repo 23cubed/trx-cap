@@ -107,6 +107,7 @@ barba.init({
         }
         const isHome = data.next.namespace == 'home';
         const isPosts = data.next.namespace == 'posts';
+        const isPost = data.next.namespace == 'post';
         if (isHome || isPosts) {
           initNavbar();
           //initScrollingGutters();
@@ -179,20 +180,24 @@ barba.init({
                       window.dispatchEvent(new Event('resize'));
                     });
                   }
-                  if (isPosts) {
-                    requestAnimationFrame(() => {
-                      window.fsAttributes.init();
-                    });
-                  }
-                  if (data.next.namespace == 'post') {
-                    requestAnimationFrame(() => {
-                      initCopied();
-                      window.fsAttributes.init();
-                    });
-                  }
                 } catch (e) {}
               })
               .call(() => ScrollTrigger.refresh())
+              .call(() =>{
+                if (isPosts){
+                  requestAnimationFrame(() => {
+                    if (window.fsAttributes) window.fsAttributes.init();
+                  });
+                }
+              })
+              .call(() =>{
+                if (isPost){
+                  requestAnimationFrame(() => {
+                    initCopied();
+                    if (window.fsAttributes) window.fsAttributes.init();
+                  });
+                }
+              })
               .call(() => { 
                 try { 
                   // Handle scroll after all ScrollTrigger operations are complete
