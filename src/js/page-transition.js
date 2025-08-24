@@ -111,11 +111,15 @@ barba.init({
       const isPost = data.next.namespace == 'post';
       if (isHome || isPosts) {
         initNavbar();
+        initFinsweet();
         //initScrollingGutters();
       }
 
       if (data.next.namespace == 'contact') {
         initFormErrors();
+      }
+      if (isPost) {
+        initFinsweet();
       }
       if (isHome) {
         resetLoaderProgress();
@@ -185,19 +189,6 @@ barba.init({
               })
               .call(() => ScrollTrigger.refresh())
               .call(() => {
-                if (isPosts) {
-                  requestAnimationFrame(() => {
-                  });
-                }
-              })
-              .call(() => {
-                if (isPost) {
-                  requestAnimationFrame(() => {
-                    initCopied();
-                  });
-                }
-              })
-              .call(() => {
                 try {
                   // Handle scroll after all ScrollTrigger operations are complete
                   if (anchorId) {
@@ -233,12 +224,6 @@ barba.init({
                 ease: 'power2.inOut'
               }, '-=0')
               .set('.transition-cover', { display: 'none' });
-              requestAnimationFrame(() => {
-                if (window.fsAttributes && typeof window.fsAttributes.init === 'function') {
-                  window.fsAttributes.destroy();
-                  window.fsAttributes.init();
-                }
-              });
             return timeline;
           });
       });
