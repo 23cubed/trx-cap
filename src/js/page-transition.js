@@ -187,16 +187,12 @@ barba.init({
               .call(() => {
                 if (isPosts) {
                   requestAnimationFrame(() => {
-                    window.fsAttributes.destroy();
-                    window.fsAttributes.init();
                   });
                 }
               })
               .call(() => {
                 if (isPost) {
                   requestAnimationFrame(() => {
-                    window.fsAttributes.destroy();
-                    window.fsAttributes.init();
                     initCopied();
                   });
                 }
@@ -237,6 +233,12 @@ barba.init({
                 ease: 'power2.inOut'
               }, '-=0')
               .set('.transition-cover', { display: 'none' });
+              requestAnimationFrame(() => {
+                if (window.fsAttributes && typeof window.fsAttributes.init === 'function') {
+                  window.fsAttributes.destroy();
+                  window.fsAttributes.init();
+                }
+              });
             return timeline;
           });
       });
