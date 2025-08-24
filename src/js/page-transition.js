@@ -179,13 +179,16 @@ barba.init({
                       window.dispatchEvent(new Event('resize'));
                     });
                   }
-                  if (data.next.namespace === 'post') initCopied();
-                  if (data.next.namespace === 'posts' || data.next.namespace === 'post') {
-                    if (window.fsAttributes) {
-                      window.fsAttributes.forEach(f => {
-                        if (f.init && typeof f.init === 'function') f.init();
-                      });
-                    }
+                  if (isPosts) {
+                    requestAnimationFrame(() => {
+                      window.fsAttributes.init();
+                    });
+                  }
+                  if (data.next.namespace == 'post') {
+                    requestAnimationFrame(() => {
+                      initCopied();
+                      window.fsAttributes.init();
+                    });
                   }
                 } catch (e) {}
               })
