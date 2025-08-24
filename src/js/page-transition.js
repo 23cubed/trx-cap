@@ -8,8 +8,16 @@ import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
 
+// Disable browser's automatic scroll restoration to prevent jumps on back button
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 // Store target hash for cross-page anchor navigation
 let targetHash = '';
+
+// Store scroll positions for back navigation
+let scrollPositions = new Map();
 
 // Handle anchor links to other pages
 document.addEventListener('click', (event) => {
@@ -27,6 +35,11 @@ document.addEventListener('click', (event) => {
 barba.init({
     transitions: [{
       leave(data) {
+        // Store current scroll position for potential back navigation
+        if (data && data.current && data.current.url) {
+          scrollPositions.set(data.current.url.href, window.scrollY);
+        }
+        
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
         // Clean up morph renderer/listeners before DOM is swapped
@@ -57,6 +70,16 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
+        // Check if this is back/forward navigation
+        const isBackForward = data && data.trigger && (data.trigger === 'back' || data.trigger === 'popstate');
+        const currentUrl = data && data.next && data.next.url ? data.next.url.href : window.location.href;
+        const storedScrollPosition = scrollPositions.get(currentUrl);
+        
+        // For non-back navigation, scroll to top immediately to prevent browser restoration jump
+        if (!isBackForward) {
+          window.scrollTo(0, 0);
+        }
+        
         // Prioritize stored targetHash from cross-page navigation, then fallback to URL hash
         const anchorId = targetHash 
           ? targetHash
@@ -165,7 +188,11 @@ barba.init({
                     const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; 
                     const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); 
                     if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); 
+                  } else if (isBackForward && typeof storedScrollPosition === 'number') {
+                    // Restore previous scroll position for back navigation
+                    window.scrollTo(0, storedScrollPosition);
                   } else {
+                    // Default to top for new navigation
                     window.scrollTo(0, 0);
                   }
                 } catch (e) {} 

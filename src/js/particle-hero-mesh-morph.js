@@ -746,6 +746,7 @@ function initParticleHeroMeshMorph(rootElement) {
                         uDepthRange: { value: depthRange },
                         uMinOpacity: { value: minOpacity },
                         uMaxOpacity: { value: maxOpacity },
+                        uDNAOpacity: { value: 1.0 },
                         uPointSize: { value: 1.5 },
                         tOffsets: { value: offsetsRead.texture },
                         uTexSize: { value: texSize },
@@ -769,6 +770,7 @@ function initParticleHeroMeshMorph(rootElement) {
                         uniform float uDepthRange;\n\
                         uniform float uMinOpacity;\n\
                         uniform float uMaxOpacity;\n\
+                        uniform float uDNAOpacity;\n\
                         uniform float uPointSize;\n\
                         uniform sampler2D tOffsets;\n\
                         uniform float uAvgDNAZ;\n\
@@ -786,9 +788,10 @@ function initParticleHeroMeshMorph(rootElement) {
                             float nearZ = avgZ + uDepthRange * 0.5;\n\
                             float farZ = avgZ - uDepthRange * 0.5;\n\
                             float normZ = clamp((base.z - farZ) / (nearZ - farZ), 0.0, 1.0);\n\
-                            vBrightness = mix(uMinOpacity, uMaxOpacity, normZ);\n\
-                            // DNA ownership fading to avoid stacking brightness near end-state\n\
+                            float trexB = mix(uMinOpacity, uMaxOpacity, normZ);\n\
                             float tDNA = 1.0 - uProgress;\n\
+                            vBrightness = mix(trexB, uDNAOpacity, tDNA);\n\
+                            // DNA ownership fading to avoid stacking brightness near end-state\n\
                             float fadeNonOwner = 1.0 - smoothstep(uFadeStart + (aRand - 0.5) * uRandRange, 1.0, tDNA);\n\
                             vFade = mix(fadeNonOwner, 1.0, step(0.5, aOwner));\n\
                             vec4 mv = modelViewMatrix * vec4(base, 1.0);\n\
