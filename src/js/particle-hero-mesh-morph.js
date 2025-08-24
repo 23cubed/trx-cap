@@ -286,6 +286,7 @@ function initParticleHeroMeshMorph(rootElement) {
     var lastLogTime = 0;
     
     var mouse = new window.THREE.Vector2();
+    var smoothedMouse = new window.THREE.Vector2();
     var mouseWorldPos = new window.THREE.Vector3();
     var repulsionOffsets = null; // no longer used after shader switch, left for compatibility during init
     
@@ -354,7 +355,10 @@ function initParticleHeroMeshMorph(rootElement) {
             var progress = morphProgress.value;
             shaderUniforms.uProgress.value = progress;
             shaderUniforms.uDissolveIntensity.value = Math.sin(progress * Math.PI);
-            shaderUniforms.uMouseNDC.value.set(mouse.x, mouse.y);
+            // Smooth mouse for eased repulsion feel (approximate previous per-particle easing)
+            smoothedMouse.x += (mouse.x - smoothedMouse.x) * REPULSION_CONFIG.easeSpeed;
+            smoothedMouse.y += (mouse.y - smoothedMouse.y) * REPULSION_CONFIG.easeSpeed;
+            shaderUniforms.uMouseNDC.value.set(smoothedMouse.x, smoothedMouse.y);
         }
         
         // Update world position interpolation once per frame
@@ -578,6 +582,7 @@ function initParticleHeroMeshMorph(rootElement) {
                     avgDissolveZ /= tRexParticleCount;
 
                     var vertexShader = '\n\
+                        #include <common>\n\
                         attribute vec3 aDna;\n\
                         attribute vec3 aDelta;\n\
                         attribute vec3 aDissolve;\n\
@@ -621,11 +626,15 @@ function initParticleHeroMeshMorph(rootElement) {
                     ';
 
                     var fragmentShader = '\n\
+                        #include <common>\n\
                         uniform sampler2D pointTexture;\n\
+                        uniform float uBrightnessScale;\n\
                         varying float vBrightness;\n\
                         void main() {\n\
                             vec4 tex = texture2D(pointTexture, gl_PointCoord);\n\
-                            gl_FragColor = vec4(vec3(vBrightness), tex.a);\n\
+                            gl_FragColor = vec4(vec3(vBrightness) * uBrightnessScale, tex.a);\n\
+                            #include <tonemapping_fragment>\n\
+                            #include <colorspace_fragment>\n\
                         }\n\
                     ';
 
@@ -643,7 +652,8 @@ function initParticleHeroMeshMorph(rootElement) {
                         uDepthRange: { value: depthRange },
                         uMinOpacity: { value: minOpacity },
                         uMaxOpacity: { value: maxOpacity },
-                        uPointSize: { value: 1.5 }
+                        uPointSize: { value: 1.5 },
+                        uBrightnessScale: { value: 1.0 }
                     };
 
                     var shaderMat = new window.THREE.ShaderMaterial({
