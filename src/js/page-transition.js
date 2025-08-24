@@ -17,9 +17,14 @@ document.addEventListener('click', (event) => {
   if (target) {
     const href = target.getAttribute('href');
     const [url, hash] = href.split('#');
+    console.log('[ANCHOR DEBUG] Link clicked:', { href, url, hash, currentPath: window.location.pathname });
+    
     // Store hash for cross-page navigation (when URL is different from current path or starts with /)
     if (hash && url && (url !== window.location.pathname || url.startsWith('/'))) {
       targetHash = hash;
+      console.log('[ANCHOR DEBUG] Stored targetHash:', targetHash);
+    } else {
+      console.log('[ANCHOR DEBUG] Not storing hash - same page or invalid conditions');
     }
   }
 });
@@ -57,6 +62,13 @@ barba.init({
           .set(data.current.container, { display: 'none' });
       },
       enter(data) {
+        console.log('[ANCHOR DEBUG] Enter function called with data:', {
+          targetHash,
+          dataNextUrl: data?.next?.url,
+          windowLocationHash: window.location.hash,
+          currentPath: window.location.pathname
+        });
+        
         // Prioritize stored targetHash from cross-page navigation, then fallback to URL hash
         const anchorId = targetHash 
           ? targetHash
@@ -64,12 +76,16 @@ barba.init({
             ? data.next.url.hash
             : (window.location.hash ? window.location.hash.replace('#','') : '');
         
+        console.log('[ANCHOR DEBUG] Final anchorId:', anchorId);
+        
         // Clear the stored hash after using it
         if (targetHash) {
+          console.log('[ANCHOR DEBUG] Clearing targetHash');
           targetHash = '';
         }
         
         if (!anchorId) {
+          console.log('[ANCHOR DEBUG] No anchorId, scrolling to top');
           window.scrollTo(0, 0);
         }
         
@@ -139,7 +155,29 @@ barba.init({
                 }
               }
             })
-              .call(() => { try { if (anchorId) { const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); } } catch (e) {} })
+              .call(() => { 
+                try { 
+                  if (anchorId) { 
+                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`;
+                    console.log('[ANCHOR DEBUG] Looking for element with selector:', sel);
+                    
+                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId);
+                    console.log('[ANCHOR DEBUG] Found element:', el);
+                    console.log('[ANCHOR DEBUG] data.next.container:', data.next.container);
+                    
+                    if (el) {
+                      console.log('[ANCHOR DEBUG] Scrolling to element:', el);
+                      el.scrollIntoView({ behavior: 'auto', block: 'start' });
+                    } else {
+                      console.log('[ANCHOR DEBUG] Element not found for anchorId:', anchorId);
+                    }
+                  } else {
+                    console.log('[ANCHOR DEBUG] No anchorId to scroll to');
+                  }
+                } catch (e) {
+                  console.error('[ANCHOR DEBUG] Error in scroll section:', e);
+                } 
+              })
               .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
               .call(() => {
                 try {
