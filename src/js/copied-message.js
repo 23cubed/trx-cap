@@ -19,4 +19,4 @@ function initCopied(){
     });
 }
 
-export { initCopied }
+export { initCopied };
