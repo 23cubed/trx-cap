@@ -69,10 +69,6 @@ barba.init({
           targetHash = '';
         }
         
-        if (!anchorId) {
-          window.scrollTo(0, 0);
-        }
-        
         const heroCTA = document.querySelector("#hero .hero-cta");
         if (heroCTA) {
           gsap.set(heroCTA, { opacity: 0 });
@@ -139,7 +135,17 @@ barba.init({
                 }
               }
             })
-              .call(() => { try { if (anchorId) { const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); } } catch (e) {} })
+              .call(() => { 
+                try { 
+                  if (anchorId) { 
+                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; 
+                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); 
+                    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); 
+                  } else {
+                    window.scrollTo(0, 0);
+                  }
+                } catch (e) {} 
+              })
               .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
               .call(() => {
                 try {
