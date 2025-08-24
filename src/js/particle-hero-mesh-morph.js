@@ -715,6 +715,17 @@ function initParticleHeroMeshMorph(rootElement) {
                     var quad = new window.THREE.Mesh(plane, computeMaterial);
                     computeScene.add(quad);
 
+                    // Compute average Z values to stabilize brightness and avoid flashes at morph endpoints
+                    var avgDNAZ = 0, avgDeltaZ = 0, avgDissolveZ = 0;
+                    for (var j = 0; j < particleCount; j++) {
+                        avgDNAZ += dnaPositions[3 * j + 2];
+                        avgDeltaZ += deltaPositions[3 * j + 2];
+                        avgDissolveZ += dissolveDisplacements[3 * j + 2];
+                    }
+                    avgDNAZ /= particleCount;
+                    avgDeltaZ /= particleCount;
+                    avgDissolveZ /= particleCount;
+
                     // Draw pass material sampling offsets
                     shaderUniforms = {
                         pointTexture: { value: getParticleTexture() },
@@ -725,7 +736,10 @@ function initParticleHeroMeshMorph(rootElement) {
                         uMaxOpacity: { value: maxOpacity },
                         uPointSize: { value: 1.5 },
                         tOffsets: { value: offsetsRead.texture },
-                        uTexSize: { value: texSize }
+                        uTexSize: { value: texSize },
+                        uAvgDNAZ: { value: avgDNAZ },
+                        uAvgDeltaZ: { value: avgDeltaZ },
+                        uAvgDissolveZ: { value: avgDissolveZ }
                     };
 
                     var vs = '\n\
@@ -741,13 +755,17 @@ function initParticleHeroMeshMorph(rootElement) {
                         uniform float uMaxOpacity;\n\
                         uniform float uPointSize;\n\
                         uniform sampler2D tOffsets;\n\
+                        uniform float uAvgDNAZ;\n\
+                        uniform float uAvgDeltaZ;\n\
+                        uniform float uAvgDissolveZ;\n\
                         varying float vBrightness;\n\
                         void main(){\n\
                             vec3 base = aDna + aDelta * uProgress + aDissolve * uDissolveIntensity;\n\
                             vec2 off = texture2D(tOffsets, aUV).xy;\n\
                             base.xy += off;\n\
-                            float nearZ = base.z + uDepthRange * 0.5;\n\
-                            float farZ = base.z - uDepthRange * 0.5;\n\
+                            float avgZ = uAvgDNAZ + uProgress * uAvgDeltaZ + uDissolveIntensity * uAvgDissolveZ;\n\
+                            float nearZ = avgZ + uDepthRange * 0.5;\n\
+                            float farZ = avgZ - uDepthRange * 0.5;\n\
                             float normZ = clamp((base.z - farZ) / (nearZ - farZ), 0.0, 1.0);\n\
                             vBrightness = mix(uMinOpacity, uMaxOpacity, normZ);\n\
                             vec4 mv = modelViewMatrix * vec4(base, 1.0);\n\
