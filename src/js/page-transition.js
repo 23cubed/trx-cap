@@ -109,16 +109,11 @@ barba.init({
         const isPosts = data.next.namespace == 'posts';
         if (isHome || isPosts) {
           initNavbar();
-          window.fsAttributes.init();
           //initScrollingGutters();
         }
 
         if (data.next.namespace == 'contact') {
           initFormErrors();
-        }
-        if (data.next.namespace == 'post') {
-          initCopied();
-          window.fsAttributes.init();
         }
         if (isHome) {
           resetLoaderProgress();
@@ -183,6 +178,14 @@ barba.init({
                       // Trigger resize event to reinitialize responsive interactions
                       window.dispatchEvent(new Event('resize'));
                     });
+                  }
+                  if (data.next.namespace === 'post') initCopied();
+                  if (data.next.namespace === 'posts' || data.next.namespace === 'post') {
+                    if (window.fsAttributes) {
+                      window.fsAttributes.forEach(f => {
+                        if (f.init && typeof f.init === 'function') f.init();
+                      });
+                    }
                   }
                 } catch (e) {}
               })
