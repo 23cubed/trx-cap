@@ -302,8 +302,8 @@ function initParticleHeroMeshMorph(rootElement) {
     
     var currentRotation = 0;
     var depthRange = 20;
-    var minOpacity = 0.5;
-    var maxOpacity = 0.5;
+    var minOpacity = 0.7;
+    var maxOpacity = 0.7;
 
     // Generate random displacement vectors for dissolve effect
     function generateDissolveDisplacements(particleCount) {
