@@ -155,6 +155,18 @@ barba.init({
                   const ix2 = wf && wf.require ? wf.require('ix2') : null;
                   if (ix2 && typeof ix2.init === 'function') ix2.init();
                   document.dispatchEvent(new Event('readystatechange'));
+                  
+                  // Additional reset for home page interactions
+                  if (isHome) {
+                    requestAnimationFrame(() => {
+                      // Force re-trigger webflow interactions for home page
+                      if (wf && typeof wf.destroy === 'function') wf.destroy();
+                      if (wf && typeof wf.ready === 'function') wf.ready();
+                      if (ix2 && typeof ix2.init === 'function') ix2.init();
+                      // Trigger resize event to reinitialize responsive interactions
+                      window.dispatchEvent(new Event('resize'));
+                    });
+                  }
                 } catch (e) {}
               })
               .call(() => ScrollTrigger.refresh())
