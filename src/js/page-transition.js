@@ -8,7 +8,7 @@ import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
 import { initCopied } from './copied-message.js';
-import{initFinsweet} from './initFinsweet.js';
+import { initFinsweet } from './initFinsweet.js';
 
 // Disable browser's automatic scroll restoration to prevent jumps on back button
 if ('scrollRestoration' in history) {
@@ -35,124 +35,124 @@ document.addEventListener('click', (event) => {
 });
 
 barba.init({
-    transitions: [{
-      leave(data) {
-        // Store current scroll position for potential back navigation
-        if (data && data.current && data.current.url) {
-          scrollPositions.set(data.current.url.href, window.scrollY);
-        }
-        
-        ScrollTrigger.killAll();
-        gsap.killTweensOf("*");
-        // Clean up morph renderer/listeners before DOM is swapped
-        try { disposeParticleHeroMeshMorph(); } catch (e) {}
-        try { disposeParticleTexture(); } catch (e) {}
-        try { disposeParticleIcons(); } catch (e) {}
-        
-        return gsap.timeline()
-          .set('.transition-cover', { display: 'block' })
-          .to('.transition-v2', {
-            top: '0rem',
-            left: '0rem',
-            right: '0rem',
-            bottom: '0rem',
-            duration: 0.6,
-            ease: 'power2.inOut'
-          })
-          .to('.transition-sheet-bottom', {
-            height: '80vh',
-            duration: 0.6,
-            ease: 'power2.inOut'
-          }, '-=0.6')
-          .to('.transition-cover', {
-            opacity: 1,
-            duration: 0.3,
-            ease: 'linear'
-          }, '-=0.3')
-          .set(data.current.container, { display: 'none' });
-      },
-      enter(data) {
-        // Check if this is back/forward navigation
-        const isBackForward = data && data.trigger && (data.trigger === 'back' || data.trigger === 'popstate');
-        const currentUrl = data && data.next && data.next.url ? data.next.url.href : window.location.href;
-        const storedScrollPosition = scrollPositions.get(currentUrl);
-        
-        // For non-back navigation, scroll to top immediately to prevent browser restoration jump
-        if (!isBackForward) {
-          window.scrollTo(0, 0);
-        }
-        
-        // Prioritize stored targetHash from cross-page navigation, then fallback to URL hash
-        const anchorId = targetHash 
-          ? targetHash
-          : (data && data.next && data.next.url && data.next.url.hash)
-            ? data.next.url.hash
-            : (window.location.hash ? window.location.hash.replace('#','') : '');
-        
-        // Clear the stored hash after using it
-        if (targetHash) {
-          targetHash = '';
-        }
-        
-        const heroCTA = document.querySelector("#hero .hero-cta");
-        if (heroCTA) {
-          gsap.set(heroCTA, { opacity: 0 });
-        }
+  transitions: [{
+    leave(data) {
+      // Store current scroll position for potential back navigation
+      if (data && data.current && data.current.url) {
+        scrollPositions.set(data.current.url.href, window.scrollY);
+      }
 
-        const cornerRadius = getComputedStyle(document.documentElement)
-          .getPropertyValue('--block-system--corner-radius').trim();
-        const cornerRadiusValue = parseFloat(cornerRadius);
-        
-        if (data.next.namespace !== 'home') {
-          setScrolled();
-        }
-        const isHome = data.next.namespace == 'home';
-        const isPosts = data.next.namespace == 'posts';
-        const isPost = data.next.namespace == 'post';
-        if (isHome || isPosts) {
-          initNavbar();
-          //initScrollingGutters();
-        }
+      ScrollTrigger.killAll();
+      gsap.killTweensOf("*");
+      // Clean up morph renderer/listeners before DOM is swapped
+      try { disposeParticleHeroMeshMorph(); } catch (e) { }
+      try { disposeParticleTexture(); } catch (e) { }
+      try { disposeParticleIcons(); } catch (e) { }
 
-        if (data.next.namespace == 'contact') {
-          initFormErrors();
-        }
-        if (isHome) {
-          resetLoaderProgress();
-        }
+      return gsap.timeline()
+        .set('.transition-cover', { display: 'block' })
+        .to('.transition-v2', {
+          top: '0rem',
+          left: '0rem',
+          right: '0rem',
+          bottom: '0rem',
+          duration: 0.6,
+          ease: 'power2.inOut'
+        })
+        .to('.transition-sheet-bottom', {
+          height: '80vh',
+          duration: 0.6,
+          ease: 'power2.inOut'
+        }, '-=0.6')
+        .to('.transition-cover', {
+          opacity: 1,
+          duration: 0.3,
+          ease: 'linear'
+        }, '-=0.3')
+        .set(data.current.container, { display: 'none' });
+    },
+    enter(data) {
+      // Check if this is back/forward navigation
+      const isBackForward = data && data.trigger && (data.trigger === 'back' || data.trigger === 'popstate');
+      const currentUrl = data && data.next && data.next.url ? data.next.url.href : window.location.href;
+      const storedScrollPosition = scrollPositions.get(currentUrl);
 
-        const waitForParticles = isHome
-          ? Promise.allSettled([
-              initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
-              initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
-            ])
-          : Promise.resolve();
+      // For non-back navigation, scroll to top immediately to prevent browser restoration jump
+      if (!isBackForward) {
+        window.scrollTo(0, 0);
+      }
 
-        const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
+      // Prioritize stored targetHash from cross-page navigation, then fallback to URL hash
+      const anchorId = targetHash
+        ? targetHash
+        : (data && data.next && data.next.url && data.next.url.hash)
+          ? data.next.url.hash
+          : (window.location.hash ? window.location.hash.replace('#', '') : '');
 
-        const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
+      // Clear the stored hash after using it
+      if (targetHash) {
+        targetHash = '';
+      }
 
-        return ready.then(() => {
-          gsap.set(data.next.container, { display: 'block' });
+      const heroCTA = document.querySelector("#hero .hero-cta");
+      if (heroCTA) {
+        gsap.set(heroCTA, { opacity: 0 });
+      }
 
-          const waitForTexture = (() => {
-            const hasTextureCanvas = !!document.querySelector('canvas.particle-texture');
-            if (!hasTextureCanvas) return Promise.resolve();
-            return new Promise((resolve) => {
-              requestAnimationFrame(() => {
-                setTimeout(() => {
-                  try { InitParticleTexture(); } catch (e) {}
-                  resolve();
-                });
+      const cornerRadius = getComputedStyle(document.documentElement)
+        .getPropertyValue('--block-system--corner-radius').trim();
+      const cornerRadiusValue = parseFloat(cornerRadius);
+
+      if (data.next.namespace !== 'home') {
+        setScrolled();
+      }
+      const isHome = data.next.namespace == 'home';
+      const isPosts = data.next.namespace == 'posts';
+      const isPost = data.next.namespace == 'post';
+      if (isHome || isPosts) {
+        initNavbar();
+        //initScrollingGutters();
+      }
+
+      if (data.next.namespace == 'contact') {
+        initFormErrors();
+      }
+      if (isHome) {
+        resetLoaderProgress();
+      }
+
+      const waitForParticles = isHome
+        ? Promise.allSettled([
+          initParticleIcon('healthcare-tech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false),
+          initParticleIcon('biotech-canvas', { r: 0.451, g: 0.451, b: 0.451 }, null, false)
+        ])
+        : Promise.resolve();
+
+      const waitForBytes = isHome ? waitForByteCompletion(50) : Promise.resolve();
+
+      const ready = isHome ? Promise.all([waitForParticles, waitForBytes]) : waitForParticles;
+
+      return ready.then(() => {
+        gsap.set(data.next.container, { display: 'block' });
+
+        const waitForTexture = (() => {
+          const hasTextureCanvas = !!document.querySelector('canvas.particle-texture');
+          if (!hasTextureCanvas) return Promise.resolve();
+          return new Promise((resolve) => {
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                try { InitParticleTexture(); } catch (e) { }
+                resolve();
               });
             });
-          })();
+          });
+        })();
 
-          const waitForMorph = isHome ? initParticleHeroMeshMorph(data.next.container) : Promise.resolve();
+        const waitForMorph = isHome ? initParticleHeroMeshMorph(data.next.container) : Promise.resolve();
 
-          return Promise.all([waitForTexture, waitForMorph])
-            .then(() => new Promise(function(resolve){ setTimeout(resolve, 100); }))
-            .then(() => {
+        return Promise.all([waitForTexture, waitForMorph])
+          .then(() => new Promise(function (resolve) { setTimeout(resolve, 100); }))
+          .then(() => {
             const timeline = gsap.timeline({
               onComplete: () => {
                 if (heroCTA) {
@@ -160,7 +160,7 @@ barba.init({
                 }
               }
             })
-              .call(() => { try { ScrollTrigger.refresh(); } catch (e) {} })
+              .call(() => { try { ScrollTrigger.refresh(); } catch (e) { } })
               .call(() => {
                 try {
                   const wf = window.Webflow;
@@ -169,7 +169,7 @@ barba.init({
                   const ix2 = wf && wf.require ? wf.require('ix2') : null;
                   if (ix2 && typeof ix2.init === 'function') ix2.init();
                   document.dispatchEvent(new Event('readystatechange'));
-                  
+
                   // Additional reset for home page interactions
                   if (isHome) {
                     requestAnimationFrame(() => {
@@ -181,31 +181,33 @@ barba.init({
                       window.dispatchEvent(new Event('resize'));
                     });
                   }
-                } catch (e) {}
+                } catch (e) { }
               })
               .call(() => ScrollTrigger.refresh())
-              .call(() =>{
-                if (isPosts){
+              .call(() => {
+                if (isPosts) {
                   requestAnimationFrame(() => {
-                    initFinsweet();
+                    window.fsAttributes.destroy();
+                    window.fsAttributes.init();
                   });
                 }
               })
-              .call(() =>{
-                if (isPost){
+              .call(() => {
+                if (isPost) {
                   requestAnimationFrame(() => {
-                    initFinsweet();
+                    window.fsAttributes.destroy();
+                    window.fsAttributes.init();
                     initCopied();
                   });
                 }
               })
-              .call(() => { 
-                try { 
+              .call(() => {
+                try {
                   // Handle scroll after all ScrollTrigger operations are complete
-                  if (anchorId) { 
-                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`; 
-                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId); 
-                    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' }); 
+                  if (anchorId) {
+                    const sel = `#${(window.CSS && window.CSS.escape) ? CSS.escape(anchorId) : anchorId}`;
+                    const el = data.next.container.querySelector(sel) || document.getElementById(anchorId);
+                    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
                   } else if (isBackForward && typeof storedScrollPosition === 'number') {
                     // Restore previous scroll position for back navigation
                     window.scrollTo(0, storedScrollPosition);
@@ -213,7 +215,7 @@ barba.init({
                     // Default to top for new navigation
                     window.scrollTo(0, 0);
                   }
-                } catch (e) {} 
+                } catch (e) { }
               })
               .call(() => new Promise(resolve => setTimeout(resolve, 10)))
               .to('.transition-v2', {
@@ -237,8 +239,7 @@ barba.init({
               .set('.transition-cover', { display: 'none' });
             return timeline;
           });
-        });
-      }
-    }]
-  });
-  
+      });
+    }
+  }]
+});
