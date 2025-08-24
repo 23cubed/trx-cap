@@ -7,6 +7,7 @@ import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
+import { initCopied } from './copied-message.js'
 
 // Disable browser's automatic scroll restoration to prevent jumps on back button
 if ('scrollRestoration' in history) {
@@ -110,10 +111,13 @@ barba.init({
           initNavbar();
           //initScrollingGutters();
         }
+
         if (data.next.namespace == 'contact') {
           initFormErrors();
         }
-
+        if (data.next.namespace == 'post') {
+          initCopied();
+        }
         if (isHome) {
           resetLoaderProgress();
         }

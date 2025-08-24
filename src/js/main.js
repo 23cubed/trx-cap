@@ -1,6 +1,7 @@
 // Auto-generated imports - DO NOT EDIT MANUALLY
 // Run 'npm run generate-imports' to update
 
+import './copied-message.js';
 import './formErrors.js';
 import './hero.js';
 import './image-particle-filter.js';
@@ -59,6 +60,6 @@ window.animateSplitText = animateSplitText;
 window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', ['./formErrors.js', './hero.js', './image-particle-filter.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 8/24/2025, 12:52:56 AM EST');
+console.log('🚀 TRX Cap modules loaded:', ['./copied-message.js', './formErrors.js', './hero.js', './image-particle-filter.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
+console.log('📅 Updated at 8/24/2025, 10:53:53 AM EST');
 console.log('🚀 Functions available for import:', ['initFormErrors', 'initHero', 'animateHeroCTA', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
