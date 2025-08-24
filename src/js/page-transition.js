@@ -109,6 +109,7 @@ barba.init({
         const isPosts = data.next.namespace == 'posts';
         if (isHome || isPosts) {
           initNavbar();
+          window.fsAttributes.init();
           //initScrollingGutters();
         }
 
