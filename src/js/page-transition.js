@@ -171,7 +171,7 @@ barba.init({
                 } catch (e) {}
               })
               .call(() => ScrollTrigger.refresh())
-              .call(() => new Promise(resolve => setTimeout(resolve, 100)))
+              .call(() => new Promise(resolve => setTimeout(resolve, 10)))
               .to('.transition-v2', {
                 top: `-${cornerRadiusValue * 1.5}rem`,
                 left: `-${cornerRadiusValue * 1.5}rem`,
