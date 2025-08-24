@@ -8,7 +8,6 @@ import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
 import { initCopied } from './copied-message.js';
-import { initFinsweet } from './initFinsweet.js';
 
 // Disable browser's automatic scroll restoration to prevent jumps on back button
 if ('scrollRestoration' in history) {
