@@ -186,15 +186,15 @@ barba.init({
               .call(() =>{
                 if (isPosts){
                   requestAnimationFrame(() => {
-                    window.fsAttributes.init();
+                    safeInitFinsweet();
                   });
                 }
               })
               .call(() =>{
                 if (isPost){
                   requestAnimationFrame(() => {
+                    safeInitFinsweet();
                     initCopied();
-                    window.fsAttributes.init();
                   });
                 }
               })
