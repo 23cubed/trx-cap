@@ -45,7 +45,8 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 canvas: canvas,
                 antialias: true,
                 alpha: true,
-                preserveDrawingBuffer: false
+                preserveDrawingBuffer: false,
+                powerPreference: 'high-performance'
             });
             __particleTextureRenderers.add(renderer);
             try { canvas.setAttribute('data-texture-initialized', '1'); } catch (e) {}

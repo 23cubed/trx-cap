@@ -30,7 +30,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
     var width = canvas.offsetWidth,
         height = canvas.offsetHeight;
 
-    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);

@@ -261,7 +261,7 @@ function initParticleHeroMeshMorph(rootElement) {
     }
 
     // Setup Three.js renderer and scene
-    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: false });
+    var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
