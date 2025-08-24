@@ -273,7 +273,6 @@ function initParticleHeroMeshMorph(rootElement) {
 
     // State variables
     var particleSystem = null;
-    var shaderUniforms = null;
     var tRexPositions = null;
     var dnaPositions = null;
     var deltaPositions = null;
@@ -286,9 +285,8 @@ function initParticleHeroMeshMorph(rootElement) {
     var lastLogTime = 0;
     
     var mouse = new window.THREE.Vector2();
-    var smoothedMouse = new window.THREE.Vector2();
     var mouseWorldPos = new window.THREE.Vector3();
-    var repulsionOffsets = null; // no longer used after shader switch, left for compatibility during init
+    var repulsionOffsets = null;
     
     var currentRotation = 0;
     var depthRange = 20;
@@ -350,22 +348,95 @@ function initParticleHeroMeshMorph(rootElement) {
             camera.updateProjectionMatrix();
         }
         
-        // Update shader uniforms per frame (GPU handles per-vertex work)
-        if (shaderUniforms) {
+        // Morph + dissolve + repulsion combined in a single pass per frame
+        if (particleSystem && tRexPositions && dnaPositions && dissolveDisplacements) {
+            if (!repulsionOffsets) {
+                repulsionOffsets = new Float32Array(tRexPositions.length);
+            }
+            var positionAttribute = particleSystem.geometry.getAttribute('position');
+            var count = positionAttribute.count;
             var progress = morphProgress.value;
-            shaderUniforms.uProgress.value = progress;
-            shaderUniforms.uDissolveIntensity.value = Math.sin(progress * Math.PI);
-            // Smooth mouse for eased repulsion feel (approximate previous per-particle easing)
-            smoothedMouse.x += (mouse.x - smoothedMouse.x) * REPULSION_CONFIG.easeSpeed;
-            smoothedMouse.y += (mouse.y - smoothedMouse.y) * REPULSION_CONFIG.easeSpeed;
-            shaderUniforms.uMouseNDC.value.set(smoothedMouse.x, smoothedMouse.y);
-        }
-        
-        // Update world position interpolation once per frame
-        if (particleSystem) {
+            var dissolveIntensity = Math.sin(progress * Math.PI);
+            var positionArray = positionAttribute.array;
+            var colorAttribute = particleSystem.geometry.getAttribute('color');
+            var colorArray = colorAttribute.array;
+            var sumZ = 0;
+
+            for (var i = 0; i < count; i++) {
+                var dnaX = dnaPositions[3 * i];
+                var dnaY = dnaPositions[3 * i + 1];
+                var dnaZ = dnaPositions[3 * i + 2];
+
+                var dX = deltaPositions ? deltaPositions[3 * i] : (tRexPositions[3 * i] - dnaX);
+                var dY = deltaPositions ? deltaPositions[3 * i + 1] : (tRexPositions[3 * i + 1] - dnaY);
+                var dZ = deltaPositions ? deltaPositions[3 * i + 2] : (tRexPositions[3 * i + 2] - dnaZ);
+
+                var baseX = dnaX + dX * progress + dissolveDisplacements[3 * i] * dissolveIntensity;
+                var baseY = dnaY + dY * progress + dissolveDisplacements[3 * i + 1] * dissolveIntensity;
+                var baseZ = dnaZ + dZ * progress + dissolveDisplacements[3 * i + 2] * dissolveIntensity;
+
+                sumZ += baseZ;
+
+                // Reuse tmpWorld vector for projection
+                tmpWorld.set(baseX, baseY, baseZ).applyMatrix4(particleSystem.matrixWorld).project(camera);
+
+                var screenDx = tmpWorld.x - mouse.x;
+                var screenDy = tmpWorld.y - mouse.y;
+                var screenDistance = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
+
+                var targetOffsetX = 0;
+                var targetOffsetY = 0;
+
+                if (screenDistance < REPULSION_CONFIG.screenRadius) {
+                    var influence = Math.pow(1 - screenDistance / REPULSION_CONFIG.screenRadius, 2);
+                    var repulsionForce = influence * REPULSION_CONFIG.strength;
+
+                    var normalizedDx, normalizedDy;
+                    if (screenDistance < 0.001) {
+                        var angle = Math.atan2(tmpWorld.y, tmpWorld.x) + (Math.random() - 0.5) * 0.5;
+                        normalizedDx = Math.cos(angle);
+                        normalizedDy = Math.sin(angle);
+                        repulsionForce = REPULSION_CONFIG.strength * 2;
+                    } else {
+                        normalizedDx = screenDx / screenDistance;
+                        normalizedDy = screenDy / screenDistance;
+                    }
+                    targetOffsetX = normalizedDx * repulsionForce * 5;
+                    targetOffsetY = normalizedDy * repulsionForce * 5;
+                }
+
+                repulsionOffsets[3 * i] += (targetOffsetX - repulsionOffsets[3 * i]) * REPULSION_CONFIG.easeSpeed;
+                repulsionOffsets[3 * i + 1] += (targetOffsetY - repulsionOffsets[3 * i + 1]) * REPULSION_CONFIG.easeSpeed;
+
+                var finalX = baseX + repulsionOffsets[3 * i];
+                var finalY = baseY + repulsionOffsets[3 * i + 1];
+
+                var idx = 3 * i;
+                positionArray[idx] = finalX;
+                positionArray[idx + 1] = finalY;
+                positionArray[idx + 2] = baseZ;
+            }
+            positionAttribute.needsUpdate = true;
+
+            // Update world position interpolation once per frame
             dnaWorldPos.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
             tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
-            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, morphProgress.value);
+            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, progress);
+
+            // Update depth-based colors once per frame (final positions) using one pass for normalization
+            var avgZ = sumZ / count;
+            var nearZ = avgZ + depthRange / 2;
+            var farZ = avgZ - depthRange / 2;
+            for (var i = 0; i < count; i++) {
+                var z = positionArray[3 * i + 2];
+                var normalizedZ = Math.max(0, Math.min(1, (z - farZ) / (nearZ - farZ)));
+                var opacity = minOpacity + (maxOpacity - minOpacity) * normalizedZ;
+                var ci = 3 * i;
+                colorArray[ci] = opacity;
+                colorArray[ci + 1] = opacity;
+                colorArray[ci + 2] = opacity;
+            }
+            colorAttribute.needsUpdate = true;
         }
         
         // Smooth rotation based on mouse position
@@ -531,6 +602,7 @@ function initParticleHeroMeshMorph(rootElement) {
                 tRexPositions = new Float32Array(positionAttribute.array);
                 repulsionOffsets = new Float32Array(positionAttribute.array.length);
                 particleSystem = ps;
+                updateDepthBasedColors();
                 return initDNAHelix(scene, dnaUrl);
             })
             .then(function(dnaPs) {
@@ -556,119 +628,6 @@ function initParticleHeroMeshMorph(rootElement) {
                     deltaPositions[3 * i + 2] = tRexPositions[3 * i + 2] - dnaPositions[3 * i + 2];
                 }
                 dissolveDisplacements = generateDissolveDisplacements(tRexParticleCount);
-
-                // Build GPU attributes for shader-based update
-                try {
-                    var geom = particleSystem.geometry;
-                    var dnaAttr = new window.THREE.Float32BufferAttribute(dnaPositions, 3);
-                    var deltaAttr = new window.THREE.Float32BufferAttribute(deltaPositions, 3);
-                    var dissolveAttr = new window.THREE.Float32BufferAttribute(dissolveDisplacements, 3);
-                    dnaAttr.setUsage(window.THREE.StaticDrawUsage);
-                    deltaAttr.setUsage(window.THREE.StaticDrawUsage);
-                    dissolveAttr.setUsage(window.THREE.StaticDrawUsage);
-                    geom.setAttribute('aDna', dnaAttr);
-                    geom.setAttribute('aDelta', deltaAttr);
-                    geom.setAttribute('aDissolve', dissolveAttr);
-
-                    // Precompute averages for depth-based opacity
-                    var avgDNAZ = 0, avgDeltaZ = 0, avgDissolveZ = 0;
-                    for (var j = 0; j < tRexParticleCount; j++) {
-                        avgDNAZ += dnaPositions[3 * j + 2];
-                        avgDeltaZ += deltaPositions[3 * j + 2];
-                        avgDissolveZ += dissolveDisplacements[3 * j + 2];
-                    }
-                    avgDNAZ /= tRexParticleCount;
-                    avgDeltaZ /= tRexParticleCount;
-                    avgDissolveZ /= tRexParticleCount;
-
-                    var vertexShader = '\n\
-                        #include <common>\n\
-                        attribute vec3 aDna;\n\
-                        attribute vec3 aDelta;\n\
-                        attribute vec3 aDissolve;\n\
-                        uniform float uProgress;\n\
-                        uniform float uDissolveIntensity;\n\
-                        uniform vec2 uMouseNDC;\n\
-                        uniform float uScreenRadius;\n\
-                        uniform float uStrength;\n\
-                        uniform float uRepelScale;\n\
-                        uniform float uAvgDNAZ;\n\
-                        uniform float uAvgDeltaZ;\n\
-                        uniform float uAvgDissolveZ;\n\
-                        uniform float uDepthRange;\n\
-                        uniform float uMinOpacity;\n\
-                        uniform float uMaxOpacity;\n\
-                        uniform float uPointSize;\n\
-                        varying float vBrightness;\n\
-                        void main() {\n\
-                            vec3 base = aDna + aDelta * uProgress + aDissolve * uDissolveIntensity;\n\
-                            // Project to NDC for screen-space repulsion\n\
-                            vec4 mv0 = modelViewMatrix * vec4(base, 1.0);\n\
-                            vec4 clip0 = projectionMatrix * mv0;\n\
-                            vec2 ndc = clip0.xy / clip0.w;\n\
-                            float dist = length(ndc - uMouseNDC);\n\
-                            if (dist < uScreenRadius && dist > 0.0001) {\n\
-                                float influence = pow(1.0 - dist / uScreenRadius, 2.0);\n\
-                                float repulsion = influence * uStrength;\n\
-                                vec2 dir = normalize(ndc - uMouseNDC);\n\
-                                base.xy += dir * repulsion * uRepelScale;\n\
-                            }\n\
-                            // Depth-based brightness using precomputed averages\n\
-                            float avgZ = uAvgDNAZ + uProgress * uAvgDeltaZ + uDissolveIntensity * uAvgDissolveZ;\n\
-                            float nearZ = avgZ + uDepthRange * 0.5;\n\
-                            float farZ = avgZ - uDepthRange * 0.5;\n\
-                            float normZ = clamp((base.z - farZ) / (nearZ - farZ), 0.0, 1.0);\n\
-                            vBrightness = mix(uMinOpacity, uMaxOpacity, normZ);\n\
-                            vec4 mv = modelViewMatrix * vec4(base, 1.0);\n\
-                            gl_Position = projectionMatrix * mv;\n\
-                            gl_PointSize = uPointSize;\n\
-                        }\n\
-                    ';
-
-                    var fragmentShader = '\n\
-                        #include <common>\n\
-                        uniform sampler2D pointTexture;\n\
-                        uniform float uBrightnessScale;\n\
-                        varying float vBrightness;\n\
-                        void main() {\n\
-                            vec4 tex = texture2D(pointTexture, gl_PointCoord);\n\
-                            gl_FragColor = vec4(vec3(vBrightness) * uBrightnessScale, tex.a);\n\
-                            #include <tonemapping_fragment>\n\
-                            #include <colorspace_fragment>\n\
-                        }\n\
-                    ';
-
-                    shaderUniforms = {
-                        pointTexture: { value: getParticleTexture() },
-                        uProgress: { value: morphProgress.value },
-                        uDissolveIntensity: { value: 0 },
-                        uMouseNDC: { value: new window.THREE.Vector2(0, 0) },
-                        uScreenRadius: { value: REPULSION_CONFIG.screenRadius },
-                        uStrength: { value: REPULSION_CONFIG.strength },
-                        uRepelScale: { value: 5.0 },
-                        uAvgDNAZ: { value: avgDNAZ },
-                        uAvgDeltaZ: { value: avgDeltaZ },
-                        uAvgDissolveZ: { value: avgDissolveZ },
-                        uDepthRange: { value: depthRange },
-                        uMinOpacity: { value: minOpacity },
-                        uMaxOpacity: { value: maxOpacity },
-                        uPointSize: { value: 1.5 },
-                        uBrightnessScale: { value: 1.0 }
-                    };
-
-                    var shaderMat = new window.THREE.ShaderMaterial({
-                        uniforms: shaderUniforms,
-                        vertexShader: vertexShader,
-                        fragmentShader: fragmentShader,
-                        transparent: true,
-                        blending: window.THREE.AdditiveBlending,
-                        depthWrite: false,
-                        vertexColors: false
-                    });
-
-                    particleSystem.material = shaderMat;
-                } catch (e) {}
-
                 initMorphTimeline();
                 morphState.initialized = true;
                 morphState.paused = false;
@@ -695,11 +654,6 @@ function pauseParticleHeroMeshMorph() {
 function disposeParticleHeroMeshMorph() {
     if (morphState.renderer) {
         try { morphState.renderer.setAnimationLoop(null); } catch (e) {}
-        try {
-            if (particleSystem && particleSystem.geometry) { try { particleSystem.geometry.dispose(); } catch (e) {} }
-            if (particleSystem && particleSystem.material) { try { particleSystem.material.dispose(); } catch (e) {} }
-            if (particleSystem && particleSystem.parent) { try { particleSystem.parent.remove(particleSystem); } catch (e) {} }
-        } catch (e) {}
         try { morphState.renderer.dispose(); } catch (e) {}
     }
     if (morphState.mouseHandler) window.removeEventListener('mousemove', morphState.mouseHandler);
