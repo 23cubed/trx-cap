@@ -114,11 +114,9 @@ barba.init({
             if (!hasTextureCanvas) return Promise.resolve();
             return new Promise((resolve) => {
               requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  setTimeout(() => {
-                    try { InitParticleTexture(); } catch (e) {}
-                    resolve();
-                  });
+                setTimeout(() => {
+                  try { InitParticleTexture(); } catch (e) {}
+                  resolve();
                 });
               });
             });
@@ -147,7 +145,7 @@ barba.init({
                   }
                 } catch (e) {} 
               })
-              .call(() => { try { requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh())); } catch (e) {} })
+              .call(() => { try { ScrollTrigger.refresh(); } catch (e) {} })
               .call(() => {
                 try {
                   const wf = window.Webflow;

@@ -1,5 +1,6 @@
 import { beginResource, updateResourceProgress, endResource } from './loader-progress.js';
 var __particleTextureRenderers = new Set();
+var __sharedPointTexture = null;
 function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
     const canvases = document.querySelectorAll('canvas.particle-texture');
     const initPromises = [];
@@ -53,6 +54,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
             renderer.setClearColor(0x000000, 0);
 
             const scene = new window.THREE.Scene();
+            try { renderer.__scene = scene; } catch (e) {}
             const camera = new window.THREE.OrthographicCamera(
                 -canvas.clientWidth / 2, canvas.clientWidth / 2,
                 canvas.clientHeight / 2, -canvas.clientHeight / 2,
@@ -280,8 +282,10 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 particleGeometry.setAttribute('color', colAttr);
                 particleGeometry.setAttribute('opacity', opaAttr);
 
-                const svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="white"/></svg>';
-                const particleTexture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+                if (!__sharedPointTexture) {
+                    const svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="white"/></svg>';
+                    __sharedPointTexture = new window.THREE.TextureLoader().load('data:image/svg+xml;base64,' + btoa(svg));
+                }
 
                 // Create custom shader material to handle per-particle opacity
                 const vertexShader = `
@@ -312,7 +316,7 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
 
                 const particleMaterial = new window.THREE.ShaderMaterial({
                     uniforms: {
-                        pointTexture: { value: particleTexture }
+                        pointTexture: { value: __sharedPointTexture }
                     },
                     vertexShader: vertexShader,
                     fragmentShader: fragmentShader,
@@ -424,6 +428,20 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
 function disposeParticleTexture() {
     try {
         __particleTextureRenderers.forEach(function(r) {
+            try {
+                const scene = r.__scene;
+                if (scene && scene.children) {
+                    scene.children.slice().forEach(function(obj){
+                        try {
+                            if (obj.isPoints) {
+                                if (obj.geometry) { try { obj.geometry.dispose(); } catch (e) {} }
+                                if (obj.material) { try { obj.material.dispose(); } catch (e) {} }
+                            }
+                        } catch (e) {}
+                        try { scene.remove(obj); } catch (e) {}
+                    });
+                }
+            } catch (e) {}
             try { r.setAnimationLoop(null); } catch (e) {}
             try { if (r.forceContextLoss) r.forceContextLoss(); } catch (e) {}
             try { r.dispose(); } catch (e) {}

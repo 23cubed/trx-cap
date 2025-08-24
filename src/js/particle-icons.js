@@ -1,6 +1,7 @@
 // Cache a reusable particle sprite texture
 var __ICON_PARTICLE_TEXTURE = null;
 var __ICON_RENDERERS = new Set();
+var __ICON_CANVAS_LISTENERS = new Map();
 function getIconParticleTexture() {
     if (!__ICON_PARTICLE_TEXTURE) {
         var svg = '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" fill="white"/></svg>';
@@ -342,6 +343,9 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
 
     canvas.addEventListener('mousemove', updateMousePosition);
     canvas.addEventListener('mouseleave', resetRotation);
+    try {
+        __ICON_CANVAS_LISTENERS.set(canvas, { mousemove: updateMousePosition, mouseleave: resetRotation });
+    } catch (e) {}
 
     var ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
@@ -362,4 +366,11 @@ export function disposeParticleIcons() {
         });
     } catch (e) {}
     __ICON_RENDERERS.clear();
+    try {
+        __ICON_CANVAS_LISTENERS.forEach(function(handlers, canvas) {
+            try { canvas.removeEventListener('mousemove', handlers.mousemove); } catch (e) {}
+            try { canvas.removeEventListener('mouseleave', handlers.mouseleave); } catch (e) {}
+        });
+    } catch (e) {}
+    __ICON_CANVAS_LISTENERS.clear();
 }

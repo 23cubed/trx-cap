@@ -11,3 +11,4 @@ window.FBXLoader = FBXLoader;
 window.MeshSurfaceSampler = MeshSurfaceSampler;
 window.WebGPURenderer = WebGPURenderer;
 window.PointsNodeMaterial = PointsNodeMaterial;
+try { THREE.Cache.enabled = true; } catch (e) {}
