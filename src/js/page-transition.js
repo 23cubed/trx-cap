@@ -82,7 +82,8 @@ barba.init({
           setScrolled();
         }
         const isHome = data.next.namespace == 'home';
-        if (isHome) {
+        const isPosts = data.next.namespace == 'posts';
+        if (isHome || isPosts) {
           initNavbar();
           //initScrollingGutters();
         }
