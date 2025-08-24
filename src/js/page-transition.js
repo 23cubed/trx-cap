@@ -118,9 +118,6 @@ barba.init({
       if (data.next.namespace == 'contact') {
         initFormErrors();
       }
-      if (isPost) {
-        initFinsweet();
-      }
       if (isHome) {
         resetLoaderProgress();
       }
@@ -188,6 +185,19 @@ barba.init({
                 } catch (e) { }
               })
               .call(() => ScrollTrigger.refresh())
+              .call(() => {
+                if (isPosts) {
+                  requestAnimationFrame(() => {
+                  });
+                }
+              })
+              .call(() => {
+                if (isPost) {
+                  requestAnimationFrame(() => {
+                    initCopied();
+                  });
+                }
+              })
               .call(() => {
                 try {
                   // Handle scroll after all ScrollTrigger operations are complete
