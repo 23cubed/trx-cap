@@ -5,7 +5,7 @@ function initCopied(){
     }
 
     const copyButtons = document.querySelectorAll('[fs-copyclip-element="click"], [fs-copyclip-element="click-2"]');
-    const copiedMessage = document.getElementById(".message");
+    const copiedMessage = document.getElementById("message");
 
     copyButtons.forEach(function (el) {
       el.addEventListener("click", function () {
