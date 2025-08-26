@@ -117,7 +117,7 @@ barba.init({
       if (data.next.namespace == 'contact') {
         initFormErrors();
       }
-      if (data.next.namespace == 'post') {
+      if (isPost) {
         initCopied();
         window.fsAttributes.init();
       }
