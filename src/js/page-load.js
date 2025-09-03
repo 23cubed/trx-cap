@@ -1,4 +1,20 @@
-function pageLoader() {
+import { InitParticleTexture } from './particle-texture.js';
+
+async function pageLoader() {
+    // Initialize texture if canvas exists
+    const hasTextureCanvas = !!document.querySelector('canvas.particle-texture');
+    if (hasTextureCanvas) {
+        await new Promise((resolve) => {
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    try { InitParticleTexture(); } catch (e) {}
+                    resolve();
+                });
+            });
+        });
+    }
+    
+    // Create and return the loader timeline
     const tl = gsap.timeline();
     
     tl.to(".page-loader", {
