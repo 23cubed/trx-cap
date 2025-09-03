@@ -8,7 +8,15 @@ function reinitialiseWebflow(data) {
   window.Webflow && window.Webflow.destroy();
   window.Webflow && window.Webflow.ready();
   
-  window.Webflow && window.Webflow.require('ix2').init();
+  // Wait 100ms before initializing IX2 and Finsweet attributes
+  setTimeout(() => {
+    window.Webflow && window.Webflow.require('ix2').init();
+    
+    // Reinitialize Finsweet attributes
+    if (window.FinsweetAttributes && window.FinsweetAttributes.modules && window.FinsweetAttributes.modules.list) {
+      window.FinsweetAttributes.modules.list.restart();
+    }
+  }, 100);
 }
 
 export { reinitialiseWebflow };
