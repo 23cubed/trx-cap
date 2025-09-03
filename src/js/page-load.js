@@ -12,6 +12,9 @@ async function pageLoader() {
                 });
             });
         });
+        
+        // Small delay after particles resolve
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
     
     // Create and return the loader timeline
