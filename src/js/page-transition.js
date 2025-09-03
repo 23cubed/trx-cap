@@ -48,10 +48,6 @@ barba.init({
         
         ScrollTrigger.killAll();
         gsap.killTweensOf("*");
-        // Clean up morph renderer/listeners before DOM is swapped
-        try { disposeParticleHeroMeshMorph(); } catch (e) {}
-        try { disposeParticleTexture(); } catch (e) {}
-        try { disposeParticleIcons(); } catch (e) {}
         
         return gsap.timeline()
           .set('.transition-cover', { display: 'block' })
@@ -74,6 +70,12 @@ barba.init({
             ease: 'linear'
           }, '-=0.3')
           .set(data.current.container, { display: 'none' });
+      },
+      afterLeave(data) {
+        // Clean up canvas resources after leave transition completes and before enter begins
+        try { disposeParticleHeroMeshMorph(); } catch (e) {}
+        try { disposeParticleTexture(); } catch (e) {}
+        try { disposeParticleIcons(); } catch (e) {}
       },
       enter(data) {
         // Check if this is back/forward navigation
