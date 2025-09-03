@@ -1,12 +1,12 @@
 import { setScrolled, initNavbar } from './navbar.js';
 import { initFormErrors } from './formErrors.js';
 import { animateHeroCTA } from './hero.js';
-import { initScrollingGutters } from '../exclude/scrolling-gutters.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
 import { InitParticleTexture } from './particle-texture.js';
 import { initParticleIcon, disposeParticleIcons } from './particle-icons.js';
 import { resetLoaderProgress, waitForByteCompletion } from './loader-progress.js';
 import { disposeParticleTexture } from './particle-texture.js';
+import { reinitialiseWebflow } from './init-webflow-ix2.js';
 
 // Disable browser's automatic scroll restoration to prevent jumps on back button
 if ('scrollRestoration' in history) {
@@ -30,6 +30,12 @@ document.addEventListener('click', (event) => {
       targetHash = hash;
     }
   }
+});
+
+// Handle Browser History (from the article)
+window.addEventListener('popstate', (event) => {
+  event.preventDefault();
+  barba.go(window.location.pathname);
 });
 
 barba.init({
@@ -160,20 +166,15 @@ barba.init({
               .call(() => { try { ScrollTrigger.refresh(); } catch (e) {} })
               .call(() => {
                 try {
-                  const wf = window.Webflow;
-                  if (wf && typeof wf.destroy === 'function') wf.destroy();
-                  if (wf && typeof wf.ready === 'function') wf.ready();
-                  const ix2 = wf && wf.require ? wf.require('ix2') : null;
-                  if (ix2 && typeof ix2.init === 'function') ix2.init();
+                  // Use the proper Webflow reinitialization from the article
+                  reinitialiseWebflow(data);
                   document.dispatchEvent(new Event('readystatechange'));
                   
                   // Additional reset for home page interactions
                   if (isHome) {
                     requestAnimationFrame(() => {
                       // Force re-trigger webflow interactions for home page
-                      if (wf && typeof wf.destroy === 'function') wf.destroy();
-                      if (wf && typeof wf.ready === 'function') wf.ready();
-                      if (ix2 && typeof ix2.init === 'function') ix2.init();
+                      reinitialiseWebflow(data);
                       // Trigger resize event to reinitialize responsive interactions
                       window.dispatchEvent(new Event('resize'));
                     });
