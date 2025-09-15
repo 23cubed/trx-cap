@@ -13,10 +13,16 @@ function initNavbar() {
 
     console.log("initNavbar");
 
-    gsap.set(navBarBG, { opacity: 0 });
-    gsap.set(navLogoCapSm, { y: "0%" });
-    gsap.set(TRXLogo, { y: "0rem", scale: 1 });
-    gsap.set(navLogoCapLg, { x: "-100%" });
+    // Check if navbar is already in scrolled state (opacity = 1) to preserve it
+    const currentOpacity = navBarBG.length > 0 ? gsap.getProperty(navBarBG[0], "opacity") : 0;
+    const isAlreadyScrolled = currentOpacity === 1;
+
+    if (!isAlreadyScrolled) {
+        gsap.set(navBarBG, { opacity: 0 });
+        gsap.set(navLogoCapSm, { y: "0%" });
+        gsap.set(TRXLogo, { y: "0rem", scale: 1 });
+        gsap.set(navLogoCapLg, { x: "-100%" });
+    }
 
     tl.fromTo(navBarBG, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
         
