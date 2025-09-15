@@ -11,6 +11,8 @@ function initNavbar() {
     const navLogoCapLg = document.getElementById("navLogoCapLg");
     const TRXLogo = document.getElementById("TRxLogo");
 
+    console.log("initNavbar");
+
     gsap.set(navBarBG, { opacity: 0 });
     gsap.set(navLogoCapSm, { y: "0%" });
     gsap.set(TRXLogo, { y: "0rem", scale: 1 });
@@ -37,6 +39,7 @@ function setScrolled() {
     const navLogoCapLg = document.getElementById("navLogoCapLg");
     const TRXLogo = document.getElementById("TRxLogo");
 
+    console.log("setScrolled");
     gsap.set(navBarBG, { opacity: 1 });
     gsap.set(navLogoCapSm, { y: "-105%" });
     gsap.set(TRXLogo, { y: "0.4rem", scale: 0.7 });
