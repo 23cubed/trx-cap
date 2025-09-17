@@ -11,18 +11,10 @@ function initNavbar() {
     const navLogoCapLg = document.getElementById("navLogoCapLg");
     const TRXLogo = document.getElementById("TRxLogo");
 
-    console.log("initNavbar");
-
-    // Check if navbar is already in scrolled state (opacity = 1) to preserve it
-    const currentOpacity = navBarBG.length > 0 ? gsap.getProperty(navBarBG[0], "opacity") : 0;
-    const isAlreadyScrolled = currentOpacity === 1;
-
-    if (!isAlreadyScrolled) {
-        gsap.set(navBarBG, { opacity: 0 });
-        gsap.set(navLogoCapSm, { y: "0%" });
-        gsap.set(TRXLogo, { y: "0rem", scale: 1 });
-        gsap.set(navLogoCapLg, { x: "-100%" });
-    }
+    gsap.set(navBarBG, { opacity: 0 });
+    gsap.set(navLogoCapSm, { y: "0%" });
+    gsap.set(TRXLogo, { y: "0rem", scale: 1 });
+    gsap.set(navLogoCapLg, { x: "-100%" });
 
     tl.fromTo(navBarBG, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
         
@@ -45,7 +37,6 @@ function setScrolled() {
     const navLogoCapLg = document.getElementById("navLogoCapLg");
     const TRXLogo = document.getElementById("TRxLogo");
 
-    console.log("setScrolled");
     gsap.set(navBarBG, { opacity: 1 });
     gsap.set(navLogoCapSm, { y: "-105%" });
     gsap.set(TRXLogo, { y: "0.4rem", scale: 0.7 });
