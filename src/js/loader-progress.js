@@ -73,13 +73,25 @@ function forceCompleteLoaderProgress() {
     __notify();
 }
 
+function lockScroll() {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+}
+
+function unlockScroll() {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+}
+
 function showLoader() {
     var counter = document.querySelector('.counter');
     gsap.set(".loader", { display: "flex", autoAlpha: 1 });
     if (counter) counter.textContent = "0%";
+    lockScroll();
 }
 
 function hideLoader() {
+    unlockScroll();
     return gsap.to('.loader', {
         autoAlpha: 0,
         duration: 0.8,
@@ -161,6 +173,6 @@ function waitForByteCompletion(noResourceResolveMs) {
     });
 }
 
-export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion };
+export { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, lockScroll, unlockScroll };
 
 

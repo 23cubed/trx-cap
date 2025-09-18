@@ -22,7 +22,7 @@ import { initCopied } from './copied-message.js';
 import { initFormErrors } from './formErrors.js';
 import { initHero, animateHeroCTA } from './hero.js';
 import { reinitialiseWebflow } from './init-webflow-ix2.js';
-import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion } from './loader-progress.js';
+import { resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, lockScroll, unlockScroll } from './loader-progress.js';
 import { initNavbar, setScrolled } from './navbar.js';
 import { pageLoader } from './page-load.js';
 import { initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph } from './particle-hero-mesh-morph.js';
@@ -32,7 +32,7 @@ import { initTextScroll } from './split-text-on-scroll.js';
 import { splitTextElement, animateSplitText, initSplitText } from './split-text.js';
 
 // Re-export all functions for ES6 imports
-export { initCopied, initFormErrors, initHero, animateHeroCTA, reinitialiseWebflow, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
+export { initCopied, initFormErrors, initHero, animateHeroCTA, reinitialiseWebflow, resetLoaderProgress, beginResource, updateResourceProgress, endResource, subscribeToLoaderProgress, forceCompleteLoaderProgress, showLoader, hideLoader, waitForSteppedCounterCompletion, waitForByteCompletion, lockScroll, unlockScroll, initNavbar, setScrolled, pageLoader, initParticleHeroMeshMorph, disposeParticleHeroMeshMorph, pauseParticleHeroMeshMorph, initParticleIcon, InitParticleTexture, disposeParticleTexture, initTextScroll, splitTextElement, animateSplitText, initSplitText };
 
 // Also expose functions globally for simple script usage
 window.initCopied = initCopied;
@@ -50,6 +50,8 @@ window.showLoader = showLoader;
 window.hideLoader = hideLoader;
 window.waitForSteppedCounterCompletion = waitForSteppedCounterCompletion;
 window.waitForByteCompletion = waitForByteCompletion;
+window.lockScroll = lockScroll;
+window.unlockScroll = unlockScroll;
 window.initNavbar = initNavbar;
 window.setScrolled = setScrolled;
 window.pageLoader = pageLoader;
@@ -66,5 +68,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./copied-message.js', './formErrors.js', './hero.js', './image-particle-filter.js', './init-webflow-ix2.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 9/17/2025, 9:23:54 PM EST');
-console.log('🚀 Functions available for import:', ['initCopied', 'initFormErrors', 'initHero', 'animateHeroCTA', 'reinitialiseWebflow', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
+console.log('📅 Updated at 9/17/2025, 10:06:43 PM EST');
+console.log('🚀 Functions available for import:', ['initCopied', 'initFormErrors', 'initHero', 'animateHeroCTA', 'reinitialiseWebflow', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'lockScroll', 'unlockScroll', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
