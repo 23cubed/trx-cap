@@ -5,7 +5,8 @@ import { beginResource, updateResourceProgress, endResource } from './loader-pro
 var MOBILE_POSITION_OFFSET = {
     x: -80, // Move left
     y: -20,  // Move down
-    scale: 100
+    scale: 100,
+    particleSize: 0.75 // Larger particles for mobile visibility
 };
 
 // Touch screen detection
@@ -116,7 +117,7 @@ function initTRex(scene, assetUrl) {
                 particleGeometry.setAttribute('color', colAttr);
 
                 var particleMaterial = new window.THREE.PointsMaterial({
-                    size: 1.5,
+                    size: isTouchDevice ? MOBILE_POSITION_OFFSET.particleSize : 1.5,
                     sizeAttenuation: false,
                     vertexColors: true,
                     map: getParticleTexture(),
@@ -196,7 +197,7 @@ function initDNAHelix(scene, assetUrl) {
                 particleGeometry.setAttribute('color', colAttr);
 
                 var particleMaterial = new window.THREE.PointsMaterial({
-                    size: 3,
+                    size: isTouchDevice ? MOBILE_POSITION_OFFSET.particleSize : 3,
                     sizeAttenuation: false,
                     vertexColors: true,
                     map: getParticleTexture(),
@@ -783,7 +784,7 @@ function initParticleHeroMeshMorph(rootElement) {
                         uMinOpacity: { value: minOpacity },
                         uMaxOpacity: { value: maxOpacity },
                         uDNAOpacity: { value: 1.0 },
-                        uPointSize: { value: 1.5 },
+                        uPointSize: { value: isTouchDevice ? MOBILE_POSITION_OFFSET.particleSize : 1.5 },
                         tOffsets: { value: offsetsRead.texture },
                         uTexSize: { value: texSize },
                         uAvgDNAZ: { value: avgDNAZ },
