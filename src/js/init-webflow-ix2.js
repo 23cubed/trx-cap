@@ -14,9 +14,45 @@ function reinitialiseWebflow(data) {
   setTimeout(() => {
     initCopied();
     window.Webflow && window.Webflow.require('ix2').init();
-    // Reinitialize Finsweet attributes
-    if (window.FinsweetAttributes && window.FinsweetAttributes.modules && window.FinsweetAttributes.modules.list) {
-      window.FinsweetAttributes.modules.list.restart();
+    
+    // Reinitialize all required Finsweet attributes
+    if (window.FinsweetAttributes && window.FinsweetAttributes.modules) {
+      const modules = window.FinsweetAttributes.modules;
+      
+      // fs-list
+      if (modules.list) {
+        modules.list.restart();
+      }
+      
+      // fs-readtime
+      if (modules.readtime) {
+        modules.readtime.restart();
+      }
+      
+      // fs-inject
+      if (modules.inject) {
+        modules.inject.restart();
+      }
+      
+      // fs-socialshare
+      if (modules.socialshare) {
+        modules.socialshare.restart();
+      }
+      
+      // fs-copyclip
+      if (modules.copyclip) {
+        modules.copyclip.restart();
+      }
+      
+      // fs-toc
+      if (modules.toc) {
+        modules.toc.restart();
+      }
+      
+      // fs-scrolldisable
+      if (modules.scrolldisable) {
+        modules.scrolldisable.restart();
+      }
     }
   }, 100);
 }
