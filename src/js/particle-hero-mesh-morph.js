@@ -3,8 +3,8 @@ import { beginResource, updateResourceProgress, endResource } from './loader-pro
 
 // Mobile positioning offsets
 var MOBILE_POSITION_OFFSET = {
-    x: -50, // Move left
-    y: -30,  // Move down
+    x: -80, // Move left
+    y: -20,  // Move down
     scale: 100
 };
 

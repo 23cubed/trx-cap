@@ -66,5 +66,5 @@ window.initSplitText = initSplitText;
 
 // Simple confirmation that modules loaded
 console.log('🚀 TRX Cap modules loaded:', ['./copied-message.js', './formErrors.js', './hero.js', './image-particle-filter.js', './init-webflow-ix2.js', './loader-progress.js', './navbar.js', './page-load.js', './page-transition.js', './particle-hero-mesh-morph.js', './particle-icons.js', './particle-texture.js', './split-text-on-scroll.js', './split-text.js', './three-js-module.js']);
-console.log('📅 Updated at 9/17/2025, 9:13:49 PM EST');
+console.log('📅 Updated at 9/17/2025, 9:15:54 PM EST');
 console.log('🚀 Functions available for import:', ['initCopied', 'initFormErrors', 'initHero', 'animateHeroCTA', 'reinitialiseWebflow', 'resetLoaderProgress', 'beginResource', 'updateResourceProgress', 'endResource', 'subscribeToLoaderProgress', 'forceCompleteLoaderProgress', 'showLoader', 'hideLoader', 'waitForSteppedCounterCompletion', 'waitForByteCompletion', 'initNavbar', 'setScrolled', 'pageLoader', 'initParticleHeroMeshMorph', 'disposeParticleHeroMeshMorph', 'pauseParticleHeroMeshMorph', 'initParticleIcon', 'InitParticleTexture', 'disposeParticleTexture', 'initTextScroll', 'splitTextElement', 'animateSplitText', 'initSplitText']);
