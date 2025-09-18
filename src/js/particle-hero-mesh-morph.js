@@ -5,7 +5,7 @@ import { beginResource, updateResourceProgress, endResource } from './loader-pro
 var MOBILE_POSITION_OFFSET = {
     x: -50, // Move left
     y: -30,  // Move down
-    scale: 155
+    scale: 100
 };
 
 // Touch screen detection
