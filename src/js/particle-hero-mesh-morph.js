@@ -1,8 +1,20 @@
 // Mesh configuration - single source of truth
 import { beginResource, updateResourceProgress, endResource } from './loader-progress.js';
+
+// Mobile positioning offsets
+var MOBILE_POSITION_OFFSET = {
+    x: -50, // Move left
+    y: -30  // Move down
+};
+
+// Touch screen detection
+var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+
 var MESH_CONFIG = {
     TREX: { 
-        x: 170, y: -10, z: 0,
+        x: isTouchDevice ? 170 + MOBILE_POSITION_OFFSET.x : 170,
+        y: isTouchDevice ? -10 + MOBILE_POSITION_OFFSET.y : -10,
+        z: 0,
         scale: 155,
         url: 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/t-rex-250k-uniform.glb'
     },
@@ -363,56 +375,64 @@ function initParticleHeroMeshMorph(rootElement) {
             camera.updateProjectionMatrix();
         }
         
-        // GPGPU offsets update pass (ping-pong)
-        if (computeScene && computeMaterial && offsetsWrite && offsetsRead) {
-            computeMaterial.uniforms.uProgress.value = morphProgress.value;
-            computeMaterial.uniforms.uDissolve.value = Math.sin(morphProgress.value * Math.PI);
-            computeMaterial.uniforms.uMouse.value.set(mouse.x, mouse.y);
-            computeMaterial.uniforms.tOffsets.value = offsetsRead.texture;
-            // update matrices for accurate NDC computation
-            if (particleSystem) {
-                particleSystem.updateMatrixWorld(true);
-                computeMaterial.uniforms.uModelMatrix.value.copy(particleSystem.matrixWorld);
+        // Skip all morph and mouse-related calculations for touch devices
+        if (!isTouchDevice) {
+            // GPGPU offsets update pass (ping-pong)
+            if (computeScene && computeMaterial && offsetsWrite && offsetsRead) {
+                computeMaterial.uniforms.uProgress.value = morphProgress.value;
+                computeMaterial.uniforms.uDissolve.value = Math.sin(morphProgress.value * Math.PI);
+                computeMaterial.uniforms.uMouse.value.set(mouse.x, mouse.y);
+                computeMaterial.uniforms.tOffsets.value = offsetsRead.texture;
+                // update matrices for accurate NDC computation
+                if (particleSystem) {
+                    particleSystem.updateMatrixWorld(true);
+                    computeMaterial.uniforms.uModelMatrix.value.copy(particleSystem.matrixWorld);
+                }
+                computeMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse);
+                computeMaterial.uniforms.uProjectionMatrix.value.copy(camera.projectionMatrix);
+                renderer.setRenderTarget(offsetsWrite);
+                renderer.render(computeScene, computeCamera);
+                renderer.setRenderTarget(null);
+                var tmp = offsetsRead; offsetsRead = offsetsWrite; offsetsWrite = tmp;
+                // update draw material to sample latest offsets
+                if (particleSystem && particleSystem.material && particleSystem.material.uniforms && particleSystem.material.uniforms.tOffsets) {
+                    particleSystem.material.uniforms.tOffsets.value = offsetsRead.texture;
+                }
             }
-            computeMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse);
-            computeMaterial.uniforms.uProjectionMatrix.value.copy(camera.projectionMatrix);
-            renderer.setRenderTarget(offsetsWrite);
-            renderer.render(computeScene, computeCamera);
-            renderer.setRenderTarget(null);
-            var tmp = offsetsRead; offsetsRead = offsetsWrite; offsetsWrite = tmp;
-            // update draw material to sample latest offsets
-            if (particleSystem && particleSystem.material && particleSystem.material.uniforms && particleSystem.material.uniforms.tOffsets) {
-                particleSystem.material.uniforms.tOffsets.value = offsetsRead.texture;
-            }
-        }
 
-        // Update world position interpolation once per frame
-        if (particleSystem) {
-            dnaWorldPos.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
-            tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
-            particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, morphProgress.value);
-            // Ensure draw material tracks morph timeline
-            if (particleSystem.material && particleSystem.material.uniforms) {
-                var du = particleSystem.material.uniforms;
-                if (du.uProgress) du.uProgress.value = morphProgress.value;
-                if (du.uDissolveIntensity) du.uDissolveIntensity.value = Math.sin(morphProgress.value * Math.PI);
-            }
-        }
-        
-        // Smooth rotation based on mouse position
-        if (particleSystem) {
-            var targetRotation;
-            
-            if (mouse.x < 0) {
-                var t = (mouse.x + 1) / 1;
-                targetRotation = ROTATION_CONFIG.leftRotation + (ROTATION_CONFIG.centerRotation - ROTATION_CONFIG.leftRotation) * t;
-            } else {
-                var t = mouse.x / 1;
-                targetRotation = ROTATION_CONFIG.centerRotation + (ROTATION_CONFIG.rightRotation - ROTATION_CONFIG.centerRotation) * t;
+            // Update world position interpolation once per frame
+            if (particleSystem) {
+                dnaWorldPos.set(MESH_CONFIG.DNA.x, MESH_CONFIG.DNA.y, MESH_CONFIG.DNA.z);
+                tRexWorldPos.set(MESH_CONFIG.TREX.x, MESH_CONFIG.TREX.y, MESH_CONFIG.TREX.z);
+                particleSystem.position.lerpVectors(dnaWorldPos, tRexWorldPos, morphProgress.value);
+                // Ensure draw material tracks morph timeline
+                if (particleSystem.material && particleSystem.material.uniforms) {
+                    var du = particleSystem.material.uniforms;
+                    if (du.uProgress) du.uProgress.value = morphProgress.value;
+                    if (du.uDissolveIntensity) du.uDissolveIntensity.value = Math.sin(morphProgress.value * Math.PI);
+                }
             }
             
-            currentRotation += (targetRotation - currentRotation) * ROTATION_CONFIG.easeSpeed;
-            particleSystem.rotation.y = currentRotation;
+            // Smooth rotation based on mouse position
+            if (particleSystem) {
+                var targetRotation;
+                
+                if (mouse.x < 0) {
+                    var t = (mouse.x + 1) / 1;
+                    targetRotation = ROTATION_CONFIG.leftRotation + (ROTATION_CONFIG.centerRotation - ROTATION_CONFIG.leftRotation) * t;
+                } else {
+                    var t = mouse.x / 1;
+                    targetRotation = ROTATION_CONFIG.centerRotation + (ROTATION_CONFIG.rightRotation - ROTATION_CONFIG.centerRotation) * t;
+                }
+                
+                currentRotation += (targetRotation - currentRotation) * ROTATION_CONFIG.easeSpeed;
+                particleSystem.rotation.y = currentRotation;
+            }
+        } else {
+            // For touch devices, set a fixed rotation
+            if (particleSystem && particleSystem.rotation.y !== ROTATION_CONFIG.centerRotation) {
+                particleSystem.rotation.y = ROTATION_CONFIG.centerRotation;
+            }
         }
         
         renderer.render(scene, camera);
@@ -429,7 +449,7 @@ function initParticleHeroMeshMorph(rootElement) {
 
     // Initialize the morph timeline
     function initMorphTimeline() {
-        if (morphTimeline) return;
+        if (isTouchDevice || morphTimeline) return;
         
         morphTimeline = window.gsap.timeline({ paused: true });
         morphTimeline.addLabel("DNA", 0);
@@ -438,7 +458,7 @@ function initParticleHeroMeshMorph(rootElement) {
     
     // Smoothly tween to target progress
     function morphToProgress(targetValue) {
-        if (!tRexPositions || !dnaPositions || !dissolveDisplacements) return;
+        if (isTouchDevice || !tRexPositions || !dnaPositions || !dissolveDisplacements) return;
         
         var existingTweens = window.gsap.getTweensOf(morphProgress);
         var isInterruption = existingTweens.length > 0;
@@ -480,6 +500,8 @@ function initParticleHeroMeshMorph(rootElement) {
 
     // Mouse position tracking and morph triggering
     function updateMousePosition(event) {
+        if (isTouchDevice) return;
+        
         var rect = canvas.getBoundingClientRect();
         
         var prevMouseX = mouse.x;
@@ -543,10 +565,14 @@ function initParticleHeroMeshMorph(rootElement) {
     }
     
     // Register and remember handlers for cleanup
-    morphState.mouseHandler = updateMousePosition;
     morphState.resizeHandler = handleWindowResize;
-    window.addEventListener('mousemove', morphState.mouseHandler);
     window.addEventListener('resize', morphState.resizeHandler);
+    
+    // Only register mouse handler for non-touch devices
+    if (!isTouchDevice) {
+        morphState.mouseHandler = updateMousePosition;
+        window.addEventListener('mousemove', morphState.mouseHandler);
+    }
 
     // Save state
     morphState.renderer = renderer;
@@ -563,11 +589,20 @@ function initParticleHeroMeshMorph(rootElement) {
                 repulsionOffsets = new Float32Array(positionAttribute.array.length);
                 particleSystem = ps;
                 updateDepthBasedColors();
+                
+                // For touch devices, skip DNA loading and morphing setup
+                if (isTouchDevice) {
+                    morphState.initialized = true;
+                    morphState.paused = false;
+                    try { canvas.setAttribute('data-morph-initialized', '1'); } catch (e) {}
+                    resolve(true);
+                    return null;
+                }
+                
                 return initDNAHelix(scene, dnaUrl);
             })
             .then(function(dnaPs) {
-                if (!dnaPs) {
-                    resolve(false);
+                if (isTouchDevice || !dnaPs) {
                     return;
                 }
                 var dnaPositionAttribute = dnaPs.geometry.getAttribute('position');
