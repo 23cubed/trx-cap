@@ -62,10 +62,8 @@ export { ${allExports.join(', ')} };
 // Also expose functions globally for simple script usage
 ${allExports.map(name => `window.${name} = ${name};`).join('\n')}
 
-// Simple confirmation that modules loaded
-console.log('🚀 TRX Cap modules loaded:', [${jsFiles.map(f => `'${f}'`).join(', ')}]);
+// Build timestamp
 console.log('📅 Updated at ${timestamp} EST');
-console.log('🚀 Functions available for import:', [${allExports.map(name => `'${name}'`).join(', ')}]);
 `;
     
     try {
