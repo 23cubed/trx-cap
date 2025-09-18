@@ -127,9 +127,9 @@ function pageLoadScene() {
         .fromTo(".navbar",
             { marginLeft: "0rem", marginRight: "0rem", marginTop: "0rem" },
             {
-                marginLeft: cornerRadiusValue,
-                marginRight: cornerRadiusValue,
-                marginTop: cornerRadiusValue,
+                marginLeft: window.innerWidth <= 568 ? "0.5rem" : cornerRadiusValue,
+                marginRight: window.innerWidth <= 568 ? "0.5rem" : cornerRadiusValue,
+                marginTop: window.innerWidth <= 568 ? "0.5rem" : cornerRadiusValue,
                 duration: 1,
                 ease: "power4.out"
             },

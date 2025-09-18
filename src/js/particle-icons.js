@@ -1,3 +1,6 @@
+// Touch screen detection
+var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+
 // Cache a reusable particle sprite texture
 var __ICON_PARTICLE_TEXTURE = null;
 var __ICON_RENDERERS = new Set();
@@ -288,7 +291,8 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
         renderer.setAnimationLoop(function() {
             frameCount++;
             
-            if (particleSystem && basePositions) {
+            // Skip repulsion and rotation effects for touch devices
+            if (!isTouchDevice && particleSystem && basePositions) {
                 var positionAttribute = particleSystem.geometry.getAttribute('position');
                 var posArray = positionAttribute.array;
                 var easeSpeed = 0.08;
@@ -330,7 +334,7 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
                 positionAttribute.needsUpdate = true;
         }
         
-        if (particleSystem) {
+        if (!isTouchDevice && particleSystem) {
             // Smoothly interpolate current rotation toward target rotation
             currentRotation += (targetRotation - currentRotation) * rotationEaseSpeed;
             particleSystem.rotation.y = currentRotation;
@@ -341,11 +345,14 @@ function initParticleIcon(canvasId, particleColor, maxParticles, useMeshSample) 
         });
     }
 
-    canvas.addEventListener('mousemove', updateMousePosition);
-    canvas.addEventListener('mouseleave', resetRotation);
-    try {
-        __ICON_CANVAS_LISTENERS.set(canvas, { mousemove: updateMousePosition, mouseleave: resetRotation });
-    } catch (e) {}
+    // Only add mouse event listeners for non-touch devices
+    if (!isTouchDevice) {
+        canvas.addEventListener('mousemove', updateMousePosition);
+        canvas.addEventListener('mouseleave', resetRotation);
+        try {
+            __ICON_CANVAS_LISTENERS.set(canvas, { mousemove: updateMousePosition, mouseleave: resetRotation });
+        } catch (e) {}
+    }
 
     var ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);

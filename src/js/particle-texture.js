@@ -1,22 +1,29 @@
 import { beginResource, updateResourceProgress, endResource } from './loader-progress.js';
 var __particleTextureRenderers = new Set();
 var __sharedPointTexture = null;
+
+// Touch screen detection
+var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+
 function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/BackgroundWavesA.svg', particleSpacing = 2, transparencyThreshold = 0.05, transparencyCeiling = 1.0) {
     const canvases = document.querySelectorAll('canvas.particle-texture');
     const initPromises = [];
 
     // Global mouse tracking for window-based repulsion (persist across Barba navigations)
-    if (!window.__particleTextureMouse) {
-        window.__particleTextureMouse = { x: 0, y: 0 };
-    }
-    function updateWindowMousePosition(event) {
-        window.__particleTextureMouse.x = event.clientX;
-        window.__particleTextureMouse.y = event.clientY;
-    }
-    // Add window mouse listener once
-    if (!window.__particleTextureMouseListenerRegistered) {
-        window.addEventListener('mousemove', updateWindowMousePosition);
-        window.__particleTextureMouseListenerRegistered = true;
+    // Skip mouse tracking setup for touch devices
+    if (!isTouchDevice) {
+        if (!window.__particleTextureMouse) {
+            window.__particleTextureMouse = { x: 0, y: 0 };
+        }
+        function updateWindowMousePosition(event) {
+            window.__particleTextureMouse.x = event.clientX;
+            window.__particleTextureMouse.y = event.clientY;
+        }
+        // Add window mouse listener once
+        if (!window.__particleTextureMouseListenerRegistered) {
+            window.addEventListener('mousemove', updateWindowMousePosition);
+            window.__particleTextureMouseListenerRegistered = true;
+        }
     }
 
 
@@ -331,6 +338,10 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                 scene.add(particleSystem);
 
                 function getCanvasMousePosition() {
+                    if (isTouchDevice || !window.__particleTextureMouse) {
+                        return { x: 0, y: 0 };
+                    }
+                    
                     const currentRect = canvas.getBoundingClientRect();
 
                     // Convert window mouse coordinates to canvas-relative coordinates
@@ -370,8 +381,8 @@ function InitParticleTexture(imageUrl = 'https://rawcdn.githack.com/23cubed/trx-
                         }
                     }
 
-                    // Apply mouse repulsion effect
-                    if (particleSystem && basePositions) {
+                    // Apply mouse repulsion effect (skip for touch devices)
+                    if (!isTouchDevice && particleSystem && basePositions) {
                         const positionAttribute = particleSystem.geometry.getAttribute('position');
                         const posArray = positionAttribute.array;
                         const mouseWorldPos = getCanvasMousePosition();
