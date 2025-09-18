@@ -16,7 +16,7 @@ var MESH_CONFIG = {
         x: isTouchDevice ? 170 + MOBILE_POSITION_OFFSET.x : 170,
         y: isTouchDevice ? -10 + MOBILE_POSITION_OFFSET.y : -10,
         z: 0,
-        scale: isTouchDevice ? MOBILE_POSITION_OFFSET.scale : 100,
+        scale: isTouchDevice ? MOBILE_POSITION_OFFSET.scale : 155,
         url: 'https://rawcdn.githack.com/23cubed/trx-cap/783fcee5b72e33115c125437ad8e7ebce94c485d/src/assets/t-rex-250k-uniform.glb'
     },
     DNA: { 
